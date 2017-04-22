@@ -1,7 +1,6 @@
 #ifndef PLANE_H
 #define PLANE_H
 
-#include "../glm/glm/glm.hpp"
 #include "../Particle.h"
 #if defined(__APPLE_CC__)
 #include <GLUT/glut.h>

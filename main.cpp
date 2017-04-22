@@ -33,7 +33,7 @@ void reshape(int width, int height);
 
 void idle(void)
 {
-    particles.step(0.001, ground);
+    particles.step(0.0001, ground);
     glutPostRedisplay();
     if(frame/render_step >= 300)
         return;

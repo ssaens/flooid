@@ -16,13 +16,14 @@
 
 void stringify_vec(glm::dvec3 vec);
 
-Particles::Particles() {
-
+Particles::Particles() :
+    solver(REST_DENSITY, H, EPS) 
+{
     external_accels.push_back(ACCEL_GRAVITY);
     
-    int nx = 3;
-    int ny = 3;
-    int nz = 3;
+    int nx = 5;
+    int ny = 5;
+    int nz = 5;
     float d = RADIUS * 2;
     for(int x=0; x<nx; x++)
     {
@@ -32,9 +33,10 @@ Particles::Particles() {
             {
                 Particle par;
                 par.pos = glm::dvec3((x+0.5-nx*0.5)*d, (y+0.5-ny*0.5)*d, (z+0.5-nz*0.5)*d);
-                par.force = glm::dvec3(0, 0, 0);
-                par.vel = glm::dvec3(0, 0, 0);
-                par.mass = 1;
+                par.pred_pos = glm::dvec3();
+                par.force = glm::dvec3();
+                par.vel = glm::dvec3();
+                par.mass = 0.0005233; //kg
                 particles.push_back(par);
             }
         }
@@ -76,18 +78,15 @@ void Particles::render() const
 
 void Particles::step(double dt, Plane& plane) {
     for (Particle &p : particles) {
+        stringify_vec(p.pos);
         for (auto accel : this->external_accels) {
             p.force += accel * p.mass;
         }
     }
 
     for (Particle &p : particles) {
-        p.pred_pos = p.pos + p.vel * dt;
         p.vel = p.vel + p.force * (1. / p.mass) * dt;
-    }
-
-    for (Particle &p : particles) {
-        plane.collide(p);
+        p.pred_pos = p.pos + p.vel * dt;
     }
 
     spacial_map.clear();
@@ -100,20 +99,41 @@ void Particles::step(double dt, Plane& plane) {
     }
 
     for (Particle &p : particles) {
-        std::vector<Particle *> neighbors = this->neighbors(p);
-        for (Particle *neighbor : neighbors) {
-            this->collide_particles(p, *neighbor);
+        p.neighborhood = this->neighborhood(p);
+    }
+
+    for (int i = 0; i < SOLVER_ITERS; ++i) {
+        for (Particle &p_i : particles) {
+            double lambda = solver.lambda_i(&p_i, p_i.neighborhood);
+            p_i.lambda = lambda;
+        }
+        for (Particle &p_i : particles) {
+            p_i.delta_pos = solver.delta_p(&p_i, p_i.neighborhood);
+            // stringify_vec(p_i.delta_pos);
+            plane.collide(p_i);
+        }
+        for (Particle &p_i : particles) {
+            p_i.pred_pos = p_i.pred_pos + p_i.delta_pos;
         }
     }
 
+    // for (Particle &p : particles) {
+    //     std::vector<Particle *> neighbors = this->neighbors(p);
+    //     for (Particle *neighbor : neighbors) {
+    //         this->collide_particles(p, *neighbor);
+    //     }
+    // }
+
     for (Particle& p : particles) {
+        p.vel = (1.f / dt) * (p.pred_pos - p.pos);
         p.pos = p.pred_pos;
         p.force = glm::dvec3(0, 0, 0);
     }
+
 }
 
 glm::ivec3 Particles::bin(Particle& p) {
-    double d = 2 * RADIUS;
+    double d = H;
     int bin_x = std::floor(p.pred_pos.x / d);
     int bin_y = std::floor(p.pred_pos.y / d);
     int bin_z = std::floor(p.pred_pos.z / d);
@@ -124,7 +144,7 @@ int Particles::hash_bin(glm::ivec3 pos) {
     return (pos.x * 0x9e3779b9 + pos.y) * 1610612741 + pos.z;
 }
 
-std::vector<Particle *> Particles::neighbors(Particle& p) {
+std::vector<Particle *> Particles::neighborhood(Particle& p) {
     std::vector<Particle *> neighbors;
     for (int i = -1; i <= 1; ++i) {
         for (int j = -1; j <= 1; ++j) {
@@ -136,7 +156,7 @@ std::vector<Particle *> Particles::neighbors(Particle& p) {
                     continue;
                 }
                 for (Particle *neighbor : *spacial_map[hash]) {
-                    if (neighbor != &p && glm::length(neighbor->pred_pos - p.pred_pos) <= 2 * RADIUS) {
+                    if (neighbor != &p && glm::length(neighbor->pred_pos - p.pred_pos) <= H) {
                         neighbors.push_back(neighbor);
                     }
                 }

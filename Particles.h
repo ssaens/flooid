@@ -18,6 +18,7 @@
 #include <vector>
 #include <map>
 #include "objects/Plane.h"
+#include "solver.h"
 
 #if defined(__APPLE_CC__)
 #include <GLUT/glut.h>
@@ -32,15 +33,18 @@ public:
     Particles();
     void render() const;
     void step(double dt, Plane& plane); // simulate one frame
+
 private:
     std::vector<Particle> particles;
     glm::ivec3 bin(Particle &p);
     int hash_bin(glm::ivec3 pos);
-    std::vector<Particle *> neighbors(Particle& p);
+    std::vector<Particle *> neighborhood(Particle& p);
     void collide_particles(Particle &p1, Particle &p2);
 
     std::map<int, std::vector<Particle *> *> spacial_map;
     std::vector<glm::vec3> external_accels;
+
+    ConstraintSolver solver;
 };
 
 #endif /* PARTICLES_H */
