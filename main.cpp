@@ -25,6 +25,7 @@ const int render_step = 3;
 int mx, my;
 
 Particles particles;
+Plane ground(glm::dvec3(0, 0, 0), glm::dvec3(0, 1, 0), 0);
 
 void display(void);
 
@@ -32,7 +33,7 @@ void reshape(int width, int height);
 
 void idle(void)
 {
-    particles.step(0.001);
+    particles.step(0.001, ground);
     glutPostRedisplay();
     if(frame/render_step >= 300)
         return;
@@ -69,7 +70,9 @@ int main(int argc, char** argv)
 
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(width, height);
-
+    glClearDepth(1.0f);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_DEPTH_TEST);
     (void)glutCreateWindow("GLUT Program");
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
@@ -100,7 +103,8 @@ void display(void)
     gluLookAt(dist*sin(phi)*cos(theta), dist*cos(phi), dist*sin(phi)*sin(theta),
             0, 0, 0, 
             0, 1, 0);
-    
+
+    ground.render();
     particles.render();
 
     glutSwapBuffers();

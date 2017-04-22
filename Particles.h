@@ -16,9 +16,11 @@
 
 #include "utils.h"
 #include <vector>
+#include <map>
+#include "objects/Plane.h"
+
 #if defined(__APPLE_CC__)
 #include <GLUT/glut.h>
-#include <map>
 
 #else
 #include <GL/glut.h>
@@ -29,20 +31,15 @@ class Particles {
 public:
     Particles();
     void render() const;
-    void step(double dt); // simulate one frame
+    void step(double dt, Plane& plane); // simulate one frame
 private:
-    struct Particle
-    {
-        glm::dvec3 pos;
-        glm::dvec3 pred_pos;
-        glm::dvec3 vel;
-        glm::dvec3 force;
-        float mass;
-    };
-    
     std::vector<Particle> particles;
-    float hash_particle(Particle &p);
-    // std::map<int, std::vector<Particle *>> spacial_map;
+    glm::ivec3 bin(Particle &p);
+    int hash_bin(glm::ivec3 pos);
+    std::vector<Particle *> neighbors(Particle& p);
+    void collide_particles(Particle &p1, Particle &p2);
+
+    std::map<int, std::vector<Particle *> *> spacial_map;
     std::vector<glm::vec3> external_accels;
 };
 
