@@ -3,6 +3,6 @@
 
 #include "glm/glm/glm.hpp"
 
-const int ACCEL_GRAVITY = fvec3((0, 0, -9.8));
+glm::fvec3 ACCEL_GRAVITY = glm::fvec3((0, 0, -9.8f));
 
 #endif

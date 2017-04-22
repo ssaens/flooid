@@ -13,9 +13,9 @@
 
 #include "Particles.h"
 
-Particles::Particles() 
-{
-    external_forces.push_back(ACCEL_GRAVITY);
+Particles::Particles() {
+
+    external_accels.push_back(ACCEL_GRAVITY);
     
     int nx = 10;
     int ny = 10;
@@ -69,8 +69,15 @@ void Particles::render() const
     glPopAttrib();
 }
 
-void Particles::step() {
+void Particles::step(float dt) {
     for (Particle& p : particles) {
-        p.forces
+        for (auto accel : this->external_accels) {
+            p.force += accel * p.mass;
+        }
+    }
+
+    for (Particle& p : particles) {
+        p.pos += p.vel * dt;
+        p.vel += p.force * (1. / p.mass) * dt;
     }
 }
