@@ -29,7 +29,7 @@ class Particles {
 public:
     Particles();
     void render() const;
-    void step(float dt); // simulate one frame
+    void step(double dt); // simulate one frame
 private:
     struct Particle
     {
@@ -42,8 +42,8 @@ private:
     
     std::vector<Particle> particles;
     float hash_particle(Particle &p);
-    std::map<int, std::vector<Particle *>> spacial_map;
-    std::vector<glm::fvec3&> external_accels;
+    // std::map<int, std::vector<Particle *>> spacial_map;
+    std::vector<glm::vec3> external_accels;
 };
 
 #endif /* PARTICLES_H */

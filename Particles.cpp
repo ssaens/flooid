@@ -12,14 +12,17 @@
  */
 
 #include "Particles.h"
+#include <iostream>
+
+void stringify_vec(glm::dvec3 vec);
 
 Particles::Particles() {
 
     external_accels.push_back(ACCEL_GRAVITY);
     
-    int nx = 10;
-    int ny = 10;
-    int nz = 10;
+    int nx = 3;
+    int ny = 3;
+    int nz = 3;
     float d = 0.2;
     for(int x=0; x<nx; x++)
     {
@@ -29,6 +32,9 @@ Particles::Particles() {
             {
                 Particle par;
                 par.pos = glm::dvec3((x+0.5-nx*0.5)*d, (y+0.5)*d-1.0, (z+0.5-nz*0.5)*d);
+                par.force = glm::dvec3(0, 0, 0);
+                par.vel = glm::dvec3(0, 0, 0);
+                par.mass = 1;
                 particles.push_back(par);
             }
         }
@@ -69,7 +75,7 @@ void Particles::render() const
     glPopAttrib();
 }
 
-void Particles::step(float dt) {
+void Particles::step(double dt) {
     for (Particle& p : particles) {
         for (auto accel : this->external_accels) {
             p.force += accel * p.mass;
@@ -78,6 +84,12 @@ void Particles::step(float dt) {
 
     for (Particle& p : particles) {
         p.pos += p.vel * dt;
-        p.vel += p.force * (1. / p.mass) * dt;
+        p.vel = p.vel + p.force * (1. / p.mass) * dt;
+        // std::cout << "(" << p.pos.x << ", " << p.pos.y << ", " << p.pos.z << ")" << " ";
+        // std::cout << "(" << p.vel.x << ", " << p.vel.y << ", " << p.vel.z << ")" << std::endl;
     }
+}
+
+void stringify_vec(glm::dvec3 vec) {
+    std::cout << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")" << std::endl;
 }
