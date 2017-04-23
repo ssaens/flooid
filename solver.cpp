@@ -7,8 +7,8 @@ ConstraintSolver::ConstraintSolver() {
 
 }
 
-ConstraintSolver::ConstraintSolver(double rest_density, double h, double eps) :
-	rest_density(rest_density), h(h), eps(eps) {
+ConstraintSolver::ConstraintSolver(double rest_density, double h, double eps, double c) :
+	rest_density(rest_density), h(h), eps(eps), c(c) {
 
 }
 
@@ -54,4 +54,38 @@ glm::dvec3 ConstraintSolver::delta_p(Particle *p_i, std::vector<Particle *> &nei
 	return (1 / this->rest_density) * delta_p;
 }
 
+glm::dvec3 ConstraintSolver::vorticity(Particle *p_i, std::vector<Particle *> &neighborhood) {
+	glm::dvec3 w;
+	for (Particle *p_j : neighborhood) {
+		glm::dvec3 v_ij = p_j->vel - p_i->vel;
+		w += glm::cross(v_ij, spiky_grad(p_i->pred_pos - p_j->pred_pos, this->h));
+	}
+	return w;
+}
+
+glm::dvec3 ConstraintSolver::f_vorticity(Particle *p_i, std::vector<Particle *> &neighborhood) {
+	glm::dvec3 force;
+	glm::dvec3 w = this->vorticity(p_i, neighborhood);
+	double rho = this->rho_i(p_i, neighborhood);
+	for (Particle *p_j : neighborhood) {
+		glm::dvec3 p_x = (p_i->mass * p_i->pred_pos + p_j->mass * p_j->pred_pos) * (1.f / (p_i->mass + p_j->mass));
+		glm::dvec3 eta = p_x - p_i->pred_pos;
+		glm::dvec3 N = glm::normalize(eta);
+		force += this->eps * (glm::cross(N, w)) * rho;
+	}
+	return force;
+}
+
+glm::dvec3 ConstraintSolver::XSPH_vel(Particle *p_i, std::vector<Particle *> &neighborhood) {
+	glm::dvec3 vel;
+	for (Particle *p_j : neighborhood) {
+		glm::dvec3 v_ij = p_j->vel - p_i->vel;
+		vel += v_ij * poly6(p_i->vel - p_j->vel, this->h);
+	}
+	// std::cout << "XSPH VEL";
+	// stringify_vec(p_i->vel);
+	// stringify_vec(vel);
+	// std::cout << std::endl;
+	return p_i->vel + this->c * vel;
+}
 

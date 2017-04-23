@@ -19,7 +19,7 @@ inline double spiky(glm::dvec3 r_ij, double h) {
 inline glm::dvec3 spiky_grad(glm::dvec3 r_ij, double h) {
 	double r = glm::length(r_ij);
 	if (0 < r && r <= h) {
-		return (-45 / (M_PI * pow(h, 6))) * pow(h - r, 2) * glm::normalize(r_ij);
+		return (45 / (M_PI * pow(h, 6))) * pow(h - r, 2) * glm::normalize(r_ij);
 	} else {
 		return glm::dvec3();
 	}

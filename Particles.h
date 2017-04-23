@@ -42,7 +42,7 @@ private:
     void collide_particles(Particle &p1, Particle &p2);
 
     std::map<int, std::vector<Particle *> *> spacial_map;
-    std::vector<glm::vec3> external_accels;
+    std::vector<glm::dvec3> external_accels;
 
     ConstraintSolver solver;
 };

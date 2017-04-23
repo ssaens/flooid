@@ -17,22 +17,24 @@
 void stringify_vec(glm::dvec3 vec);
 
 Particles::Particles() :
-    solver(REST_DENSITY, H, EPS) 
+    solver(REST_DENSITY, H, EPS, C) 
 {
     external_accels.push_back(ACCEL_GRAVITY);
     
     int nx = 10;
-    int ny = 10;
+    int ny = 5;
     int nz = 10;
     float d = RADIUS * 2;
     for(int x=0; x<nx; x++)
     {
-        for(int y=3; y<3+ny; y++)
+        for(int y=5; y<5+ny; y++)
         {
             for(int z=0; z<nz; z++)
             {
                 Particle par;
-                par.pos = glm::dvec3((x+0.5-nx*0.5)*d, (y+0.5-ny*0.5)*d, (z+0.5-nz*0.5)*d);
+                double x_offset = RANDOMIZE ? (rand() % 1000) / 1000.f * RADIUS - RADIUS / 2 : 0;
+                double z_offset = RANDOMIZE ? (rand() % 1000) / 1000.f * RADIUS - RADIUS / 2 : 0;
+                par.pos = glm::dvec3((x+0.5-nx*0.5)*d + x_offset, (y+0.5-ny*0.5)*d, (z+0.5-nz*0.5)*d) + z_offset;
                 par.pred_pos = glm::dvec3();
                 par.force = glm::dvec3();
                 par.vel = glm::dvec3();
@@ -69,7 +71,8 @@ void Particles::render() const
         
         glPushMatrix();
         glTranslatef(par.pos.x, par.pos.y, par.pos.z);
-        glutSolidSphere(0.05, 10, 10);
+        glutSolidSphere(RADIUS, 10, 10);
+        // glutSolidTeapot(0.05);
         glPopMatrix();
     }
     
@@ -78,7 +81,6 @@ void Particles::render() const
 
 void Particles::step(double dt, std::vector<Plane *> planes) {
     for (Particle &p : particles) {
-        stringify_vec(p.pos);
         for (auto accel : this->external_accels) {
             p.force += accel * p.mass;
         }
@@ -109,11 +111,11 @@ void Particles::step(double dt, std::vector<Plane *> planes) {
         }
         for (Particle &p_i : particles) {
             p_i.delta_pos = solver.delta_p(&p_i, p_i.neighborhood);
-            for (Plane *plane : planes)
-                plane->collide(p_i);
         }
         for (Particle &p_i : particles) {
-            p_i.pred_pos = p_i.pred_pos + p_i.delta_pos;
+            p_i.pred_pos += p_i.delta_pos;
+            for (Plane *plane : planes)
+                plane->collide(p_i);
         }
     }
 
@@ -122,14 +124,20 @@ void Particles::step(double dt, std::vector<Plane *> planes) {
     //     for (Particle *neighbor : neighbors) {
     //         this->collide_particles(p, *neighbor);
     //     }
-    // }
+    // }s
 
     for (Particle& p : particles) {
         p.vel = (1.f / dt) * (p.pred_pos - p.pos);
+        // printify("\tpred pos", p.pred_pos);
+        // printify("\tpos", p.pos);
+        // printify("vorticity velocity before", p.vel);
+
+        p.force += solver.f_vorticity(&p, p.neighborhood);
+        p.vel = solver.XSPH_vel(&p, p.neighborhood);
+        // printify("vort vel after", p.vel);
         p.pos = p.pred_pos;
         p.force = glm::dvec3(0, 0, 0);
     }
-
 }
 
 glm::ivec3 Particles::bin(Particle& p) {

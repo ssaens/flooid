@@ -76,10 +76,10 @@ int main(int argc, char** argv)
 
 
     tank.push_back(&ground);
-    tank.push_back(&side0);
-    tank.push_back(&side1);
-    tank.push_back(&side2);
-    tank.push_back(&side3);
+    // tank.push_back(&side0);
+    // tank.push_back(&side1);
+    // tank.push_back(&side2);
+    // tank.push_back(&side3);
 
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(width, height);

@@ -14,7 +14,7 @@ struct Particle {
     
     std::vector<struct Particle *> neighborhood;
     double lambda;
-    float mass;
+    double mass;
 };
 
 #endif
