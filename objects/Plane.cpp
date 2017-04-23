@@ -16,26 +16,7 @@ void Plane::collide(Particle& p) {
 		p.pred_pos = proj_point;
 		p.vel = glm::dvec3();
 	 }
-	// if (p.pred_pos.x < -1) {
-	// 	p.vel = glm::vec3();
-	// 	p.pred_pos.x = -1 + SURFACE_OFFSET;
-	// } else if (p.pred_pos.x >= 1) {
-	// 	p.vel = glm::vec3();
-	// 	p.pred_pos.x = 1 - SURFACE_OFFSET;
-	// }
 
-	// if (p.pred_pos.z < -1) {
-	// 	p.vel = glm::vec3();
-	// 	p.pred_pos.z = -1 + SURFACE_OFFSET;
-	// } else if (p.pred_pos.z >= 1) {
-	// 	p.vel = glm::vec3();
-	// 	p.pred_pos.z = 1 + SURFACE_OFFSET;
-	// }
-
-	// if (p.pred_pos.y < 0) {
-	// 	p.vel = glm::vec3();
-	// 	p.pred_pos.y = SURFACE_OFFSET;
-	// }
 }
 
 void Plane::render() {

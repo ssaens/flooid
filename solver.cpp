@@ -48,8 +48,10 @@ glm::dvec3 ConstraintSolver::grad_k_Ci(Particle *p_k, Particle *p_i, std::vector
 
 glm::dvec3 ConstraintSolver::delta_p(Particle *p_i, std::vector<Particle *> &neighborhood) {
 	glm::dvec3 delta_p;
+	double s_corr;
 	for (Particle *p_j : neighborhood) {
-		delta_p += (p_j->lambda + p_i->lambda) * spiky_grad(p_i->pred_pos - p_j->pred_pos, this->h);
+		s_corr = clamp(-K * std::pow(poly6(p_i->pred_pos - p_j->pred_pos, this->h) / poly6(DELTA_Q, this->h), N), 0, -0.0001);
+		delta_p += (p_j->lambda + p_i->lambda + s_corr) * spiky_grad(p_i->pred_pos - p_j->pred_pos, this->h);
 	}
 	return (1 / this->rest_density) * delta_p;
 }
@@ -82,10 +84,6 @@ glm::dvec3 ConstraintSolver::XSPH_vel(Particle *p_i, std::vector<Particle *> &ne
 		glm::dvec3 v_ij = p_j->vel - p_i->vel;
 		vel += v_ij * poly6(p_i->vel - p_j->vel, this->h);
 	}
-	// std::cout << "XSPH VEL";
-	// stringify_vec(p_i->vel);
-	// stringify_vec(vel);
-	// std::cout << std::endl;
 	return p_i->vel + this->c * vel;
 }
 

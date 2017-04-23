@@ -22,7 +22,7 @@ Particles::Particles() :
     external_accels.push_back(ACCEL_GRAVITY);
     
     int nx = 15;
-    int ny = 20;
+    int ny = 15;
     int nz = 15;
     float d = RADIUS * 2;
     for(int x=0; x<nx; x++)
