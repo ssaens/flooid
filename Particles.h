@@ -32,7 +32,7 @@ class Particles {
 public:
     Particles();
     void render() const;
-    void step(double dt, Plane& plane); // simulate one frame
+    void step(double dt, std::vector<Plane *> planes); // simulate one frame
 
 private:
     std::vector<Particle> particles;

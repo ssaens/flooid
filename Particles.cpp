@@ -21,9 +21,9 @@ Particles::Particles() :
 {
     external_accels.push_back(ACCEL_GRAVITY);
     
-    int nx = 5;
-    int ny = 5;
-    int nz = 5;
+    int nx = 10;
+    int ny = 10;
+    int nz = 10;
     float d = RADIUS * 2;
     for(int x=0; x<nx; x++)
     {
@@ -36,7 +36,7 @@ Particles::Particles() :
                 par.pred_pos = glm::dvec3();
                 par.force = glm::dvec3();
                 par.vel = glm::dvec3();
-                par.mass = 0.0005233; //kg
+                par.mass = 1; //kg
                 particles.push_back(par);
             }
         }
@@ -76,7 +76,7 @@ void Particles::render() const
     glPopAttrib();
 }
 
-void Particles::step(double dt, Plane& plane) {
+void Particles::step(double dt, std::vector<Plane *> planes) {
     for (Particle &p : particles) {
         stringify_vec(p.pos);
         for (auto accel : this->external_accels) {
@@ -109,8 +109,8 @@ void Particles::step(double dt, Plane& plane) {
         }
         for (Particle &p_i : particles) {
             p_i.delta_pos = solver.delta_p(&p_i, p_i.neighborhood);
-            // stringify_vec(p_i.delta_pos);
-            plane.collide(p_i);
+            for (Plane *plane : planes)
+                plane->collide(p_i);
         }
         for (Particle &p_i : particles) {
             p_i.pred_pos = p_i.pred_pos + p_i.delta_pos;
