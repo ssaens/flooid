@@ -21,9 +21,9 @@ Particles::Particles() :
 {
     external_accels.push_back(ACCEL_GRAVITY);
     
-    int nx = 10;
-    int ny = 5;
-    int nz = 10;
+    int nx = 15;
+    int ny = 20;
+    int nz = 15;
     float d = RADIUS * 2;
     for(int x=0; x<nx; x++)
     {
@@ -34,7 +34,7 @@ Particles::Particles() :
                 Particle par;
                 double x_offset = RANDOMIZE ? (rand() % 1000) / 1000.f * RADIUS - RADIUS / 2 : 0;
                 double z_offset = RANDOMIZE ? (rand() % 1000) / 1000.f * RADIUS - RADIUS / 2 : 0;
-                par.pos = glm::dvec3((x+0.5-nx*0.5)*d + x_offset, (y+0.5-ny*0.5)*d, (z+0.5-nz*0.5)*d) + z_offset;
+                par.pos = glm::dvec3((x+0.5-nx*0.5)*d + x_offset, y*d, (z+0.5-nz*0.5)*d) + z_offset;
                 par.pred_pos = glm::dvec3();
                 par.force = glm::dvec3();
                 par.vel = glm::dvec3();
@@ -71,7 +71,7 @@ void Particles::render() const
         
         glPushMatrix();
         glTranslatef(par.pos.x, par.pos.y, par.pos.z);
-        glutSolidSphere(RADIUS, 10, 10);
+        glutSolidSphere(RADIUS / 2, 10, 10);
         // glutSolidTeapot(0.05);
         glPopMatrix();
     }

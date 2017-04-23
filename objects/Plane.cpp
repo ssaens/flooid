@@ -2,43 +2,40 @@
 #include "../utils.h"
 
 void Plane::collide(Particle& p) {
-	// double pos_dot = glm::dot(p.pos, this->normal);
-	// glm::dvec3 final_pos = p.pred_pos;
-	// double pred_dot = glm::dot(final_pos, this->normal);
-	// if (std::signbit(pos_dot) != std::signbit(pred_dot)) {
-	// 	glm::dvec3 d = glm::normalize(final_pos - p.pos);
-	// 	double t = glm::dot(this->point - p.pos, this->normal) / glm::dot(d, this->normal);
-	// 	glm::dvec3 tangent = p.pos + t * d;
-	// 	glm::dvec3 correction = (tangent - SURFACE_OFFSET * d) - p.pos;
-	// 	p.pred_pos = correction + p.pos;
-	// 	p.vel = glm::reflect(p.vel, this->normal) * 0.9;
-	// 	printify("plane velocities", p.vel);
-	// 		// printify("plane pos", p.pos);
-	// 		// 		printify("plane pred_pos", p.pred_pos);
-	// 		// 				printify("plane tan", tangent);
+	double pos_dot = glm::dot(p.pos - this->point, this->normal);
+	double pred_dot = glm::dot(p.pred_pos - this->point, this->normal);
+	if (std::signbit(pos_dot) != std::signbit(pred_dot)) {
+		glm::dvec3 proj_vec = p.pred_pos - this->point;
+		double dist = glm::dot(proj_vec, this->normal);
+		if (dist < 0) {
+			dist = dist - SURFACE_OFFSET;
+		} else {
+			dist = dist + SURFACE_OFFSET;
+		}
+		glm::dvec3 proj_point = p.pred_pos - this->normal * (dist);
+		p.pred_pos = proj_point;
+		p.vel = glm::dvec3();
+	 }
+	// if (p.pred_pos.x < -1) {
+	// 	p.vel = glm::vec3();
+	// 	p.pred_pos.x = -1 + SURFACE_OFFSET;
+	// } else if (p.pred_pos.x >= 1) {
+	// 	p.vel = glm::vec3();
+	// 	p.pred_pos.x = 1 - SURFACE_OFFSET;
+	// }
 
-	// 	 // exit(1);
-	//  }
-	if (p.pred_pos.x < -1) {
-		p.vel = glm::vec3();
-		p.pred_pos.x = -1 + SURFACE_OFFSET;
-	} else if (p.pred_pos.x >= 1) {
-		p.vel = glm::vec3();
-		p.pred_pos.x = 1 - SURFACE_OFFSET;
-	}
+	// if (p.pred_pos.z < -1) {
+	// 	p.vel = glm::vec3();
+	// 	p.pred_pos.z = -1 + SURFACE_OFFSET;
+	// } else if (p.pred_pos.z >= 1) {
+	// 	p.vel = glm::vec3();
+	// 	p.pred_pos.z = 1 + SURFACE_OFFSET;
+	// }
 
-	if (p.pred_pos.z < -1) {
-		p.vel = glm::vec3();
-		p.pred_pos.z = -1 + SURFACE_OFFSET;
-	} else if (p.pred_pos.z >= 1) {
-		p.vel = glm::vec3();
-		p.pred_pos.z = 1 + SURFACE_OFFSET;
-	}
-
-	if (p.pred_pos.y < 0) {
-		p.vel = glm::vec3();
-		p.pred_pos.y = SURFACE_OFFSET;
-	}
+	// if (p.pred_pos.y < 0) {
+	// 	p.vel = glm::vec3();
+	// 	p.pred_pos.y = SURFACE_OFFSET;
+	// }
 }
 
 void Plane::render() {
