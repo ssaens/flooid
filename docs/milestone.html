@@ -90,7 +90,7 @@
     <p>More implementation details can be found in these <a href=''>slides</a>.</p>
     
 <h2>Preliminary Results</h2>
-    <p>Having the algorithm implemented, we can render scenes with a small number of particles. The following scenes were rendered by generating a 25 x 20 x 25 block of particles in a 1 meter^3 cubic tank. First we have a scene with only incompressibility constraints:</p>
+    <p>Having the algorithm implemented, we can render scenes with a small number of particles. The following scenes were rendered by generating a 25 x 20 x 25 block of particles (~12k particles) in a 1 meter^3 cubic tank. First we have a scene with only incompressibility constraints:</p>
     <div align='middle'>
         <img style='margin: auto' width='500px' src='./img/fluid_no_vort.gif'>
     </div>
@@ -103,7 +103,7 @@
     <p>The strange stacking in the corners is now mostly gone and the fluid now exibts some replication of surface tension, however we are still not quite satisfied with the way particles seem gravitate towards the edges of the tank. We plan on modifying the constants that dictate the solver to improve the realism of the simulation.</p>
     
 <h2>What Comes Next</h2>
-    <p>In accordance to our schedule, we seem to be right on track. having just finished week 2, we are at the point where the underlying particle model seems to be working as intended, besides some minor tweaks. We have several main features we wish to address in the next week and beyond:</p>
+    <p>In accordance to our schedule, we seem to be right on track (maybe even slightly ahead seeing as we've only had really this weekend to work on it), having just finished week 2, we are at the point where the underlying particle model seems to be working as intended, besides some minor tweaks. We have several main features we wish to address in the next week and beyond:</p>
     
     <ul>
         <li>Move the simulation from CPU to GPU using CUDA to improve simulation speed and size</li>
