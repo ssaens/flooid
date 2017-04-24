@@ -5,7 +5,8 @@ set(FLOOID_SOURCE
         main.cpp
         ParticleManager.cpp
         PBDSolver.cpp
-        utils.cpp)
+        utils.cpp
+        PBFRenderer.cpp)
 
 # flooid header
 set(FLOOID_HEADER
@@ -14,7 +15,8 @@ set(FLOOID_HEADER
         particle.h
         kernels.h
         utils.h
-        common.h)
+        common.h
+        PBFRenderer.h)
 
 
 #-------------------------------------------------------------------------------

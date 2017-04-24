@@ -1,9 +1,16 @@
-#include <iostream>
+#include <eng/eng.h>
 
-#include "particle.h"
+#include <iostream>
+#include "PBFRenderer.h"
+
+using namespace std;
+using namespace eng;
 
 int main() {
-    particle particle;
-    std::cout << particle.pos.x << std::endl;
+    View view;
+    PBFRenderer *pbf = new PBFRenderer();
+    view.set_renderer(pbf);
+    view.init();
+    view.run();
     return 0;
 }
