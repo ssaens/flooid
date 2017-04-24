@@ -100,14 +100,20 @@
         <img style='middle' width='500px' src='./img/fluid.gif'>
     </div>
     
-    <p>The strange stacking in the corners is now mostly gone and the fluid now exibts some replication of surface tension, however we are still not quite satisfied with the way particles seem gravitate towards the edges of the tank. We plan on modifying the constants that dictate the solver to improve the realism of the simulation.</p>
+    <p>The strange stacking in the corners is now mostly gone and the fluid now exibts some replication of surface tension, however we are still not quite satisfied with the way particles seem gravitate towards the edges of the tank. We plan on modifying the constants that dictate the solver to improve the realism of the simulation and introduce some randomness into the plane collision code to prevent stacking in corners.</p>
     
+    <div align='middle'>
+	<img style='middle' width='500px' src='./img/fluid_long_tank.gif'>
+    </div>
+
+    <p>The current fluid parameters also have the fluid being slightly more viscous than desired as seen by the lack of significant splash on the long end of the tank.</p>
+
 <h2>What Comes Next</h2>
     <p>In accordance to our schedule, we seem to be right on track (maybe even slightly ahead seeing as we've only had really this weekend to work on it), having just finished week 2, we are at the point where the underlying particle model seems to be working as intended, besides some minor tweaks. We have several main features we wish to address in the next week and beyond:</p>
     
     <ul>
         <li>Move the simulation from CPU to GPU using CUDA to improve simulation speed and size</li>
-        <li>Move from the starter GLUT implementation to something closer to the GLFW based library we've used for other projects to allow for better interation and more control over views</li>
+        <li>Move from the starter GLUT implementation to something closer to the GLFW based library we've used for other projects to allow for better user interaction and more control over views</li>
         <li>Add collidable meshes</li>
         <li>Add surface texturing to the water using the ellipsoid splattering technique mentioned in Macklin</li>
     </ul>

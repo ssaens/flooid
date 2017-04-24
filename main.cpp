@@ -1,4 +1,4 @@
-#define OUTPUT_ANIMATION 0
+#define OUTPUT_ANIMATION 1
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,11 +26,11 @@ int mx, my;
 
 Particles particles;
 Plane ground(glm::dvec3(0, 0, 0), glm::dvec3(0, 1, 0), 0);
-Plane side0(glm::dvec3(1, 1, 0), glm::dvec3(1, 0, 0), 0);
+Plane side0(glm::dvec3(1, 0, 0), glm::dvec3(1, 0, 0), 0);
 Plane side1(glm::dvec3(0, 0, 1), glm::dvec3(0, 0, 1), 0);
-Plane side2(glm::dvec3(-1, 0, 0), glm::dvec3(1, 0, 0), 0);
+Plane side2(glm::dvec3(-2, 0, 0), glm::dvec3(1, 0, 0), 0);
 Plane side3(glm::dvec3(0, 0, -1), glm::dvec3(0, 0, 1), 0);
-Plane side4(glm::dvec3(0, 2, 0), glm::dvec3(0, 1, 0), 0);
+Plane side4(glm::dvec3(0, 3, 0), glm::dvec3(0, 1, 0), 0);
 std::vector<Plane *> tank;
 
 
