@@ -1,0 +1,136 @@
+<html>
+<head>
+<style>
+      body {
+        padding: 100px;
+        width: 1000px;
+        margin: auto;
+        text-align: left;
+        font-weight: 300;
+        font-family: 'Open Sans', sans-serif;
+        color: #121212;
+      }
+      h1, h2, h3, h4 {
+        font-family: 'Source Sans Pro', sans-serif;
+      }
+    pre {
+        padding: 10px;
+        margin: 0;
+        background: rgb(20, 23, 27);
+        color: white;
+        line-height: 1.3em;
+    }
+    k {
+        color: rgb(253, 148, 8);    
+    }
+    
+    t {
+        color: lightblue;
+    }
+
+</style>
+<title>CS 184 Final Project Milestone</title>
+</head>
+<body>
+
+<h1 align="middle">Final Project Milestone</h1>
+<h2 align="middle">Position Based Fluid Simulation</h2>
+<h3 align="middle">Dillon Yao, CS184-aai</h3>
+<h3 align="middle">Tony Situ, CS184-acl</h3>
+
+    <br/>
+<div>
+
+<h2>Current Progress</h2>
+    <p>So far, using the starter code provided, we have implemented the Position Based Dynamics algoritms provided in <a href='http://mmacklin.com/pbf_sig_preprint.pdf'>Position Based Fluids [Macklin, Muller]</a> and are able to render particles that behave as incompressible fluids that preserve vorticity. In addition, particle-plane collisions were also implemented to allows for confinement of particles.</p>
+    
+    <p>First came the particle, represented by the following struct:</p>
+    
+    <div style='columns: 2'>
+        <pre>
+        <k>struct</k> Particle {
+            <t>vec3</t> pos;
+            <t>vec3</t> pred_pos;
+            <t>vec3</t> delta_pos;
+
+            <t>vec3</t> vel;
+            <t>vec3</t> force;
+
+            <t>vector&lt;Particle *&gt;</t> neighborhood;
+        }
+        </pre>
+        <p>The struct keeps track of particle positions, the predicted position of the particle for the next time step, a incompressibility pressure correction term <code>delta_pos</code>, as well as the current velocity and force acting on the particle. Additionally, the algorithms presented to enforce incompressibility require knowledge of the particles neighbors, for which we built a spacial map similar to that in the project 4 cloth simulator to quickly search for the particals in range of the particle of interest.<p>
+        <br/>
+    </div>
+    
+    <p>Having our particle representation, we implemented the following algorithm:</p>
+    
+    <pre>
+        <k>for</k> Particle i in particles: 
+            <t>accumulate</t> forces from external accelerations
+            <t>update</t> the particle's velocity based on accumulated forces
+            <t>calculate</t> the particle's predicted position in the next time step
+        <k>for</k> Particle i in particles:
+            <t>find</t> all neighboring particles (within a constant radius <k>KERNAL_RADIUS</k>)
+        <k>for</k> i in range(SOLVER_ITERS):
+            <k>for</k> Particle i in particles:
+                <t>calculate</t> a correction vector <k>delta_p</k> to maintain incompressibility
+                <t>adjust</t> the particle's position by adding <k>delta_p</k>
+                <t>detect</t> collisions and respond
+        <k>for</k> Particle i in particles:
+            <t>update</t> velocity to be the change in particle position over the timestep
+            <t>apply</t> vorticity confinement and adjust for viscosity
+            <t>update</t> the position to be the predicted position
+    </pre>
+    
+    <p>First forces were accumulated on the particle and its predicted position calculated using explicit Euler. Afterwards, using our spacial map, we find all particles in the surrounding neighborhood of radius <code><k>KERNEL_RADIUS</k></code>. At this point, we run multiple iterations of our solver to try and satisfy incompressibility contraints by calculating the correctino vector <code>delta_pos</code>. This requires the use of two smoothing kernels. We use the poly6 kernel to perform density operations and the spiky kernel for gradient calculations. These kernels distribute the perssure within a neighborhood of particles to promote incompressibility and prevent particles from being too clumped. The solver runs for multiple iterations to improve the particle spacing. After running the solver, we adjust the velocity of the particle to be the distance the particle is exptected to travel over the timestep, applying additional corrections to conserver voriticity and give viscosity to the liquid. Finally we move the particle to its predicted position.</p>
+    
+    <p>To create a basic scene, we also implemented basic particle-plane collisions. If we find a particle is predicted to pass through a plane (its predicted position and current position are on opposite sides of the plane), we simply move the particle along the plane's normal until it is back on the correct side of the plane, adding a small offset <code><k>SURFACE_OFFSET</k></code> to prevent it from colliding immediately again.</p>
+    
+    <p>More implementation details can be found in these <a href=''>slides</a>.</p>
+    
+<h2>Preliminary Results</h2>
+    <p>Having the algorithm implemented, we can render scenes with a small number of particles. The following scenes were rendered by generating a 25 x 20 x 25 block of particles in a 1 meter^3 cubic tank. First we have a scene with only incompressibility constraints:</p>
+    <div align='middle'>
+        <img style='margin: auto' width='500px' src='./img/fluid_no_vort.gif'>
+    </div>
+    <p>You can see that particles work to distrute the density amongst itself, spreading out like a fluid would in the tank, though it tends to stack unrealistically in corners and spreads itself very thin when sprayed, lacking the surface tension of actual fluids. We add vorticity confinement and a small correction term to prevent negative pressures from pushing particles too far apart when particles have few neighbors. The next scene adds in vorticity confinement, viscosity adjustments, as well as tensile stability correction to improve accuracy when particles have few neighbors.</p>
+    
+    <div align='middle'>
+        <img style='middle' width='500px' src='./img/fluid.gif'>
+    </div>
+    
+    <p>The strange stacking in the corners is now mostly gone and the fluid now exibts some replication of surface tension, however we are still not quite satisfied with the way particles seem gravitate towards the edges of the tank. We plan on modifying the constants that dictate the solver to improve the realism of the simulation.</p>
+    
+<h2>What Comes Next</h2>
+    <p>We have several main features we wish to address in the next week and beyond:</p>
+    
+    <ul>
+        <li>Move the simulation from CPU to GPU using CUDA to improve simulation speed and size</li>
+        <li>Move from the starter GLUT implementation to something closer to the GLFW based library we've used for other projects to allow for better interation and more control over views</li>
+        <li>Add collidable meshes</li>
+        <li>Add surface texturing to the water using the ellipsoid splattering technique mentioned in Macklin</li>
+    </ul>
+    
+    <p>Our next step will likely be moving the simulation to the GPU using a library like CUDA. This is mainly so we can handle more larger scenes so better see the impact of our tweaks to particle cohesion in a shorter timespan. Neither of us have experience with CUDA so we expect this process to be somewhat lengnthy, but we believe the effor to be necessary and worth it.</p>
+    
+    <p>We also wish to attempt to replace the current GLUT implementation with an engine that more closely replicates the CGL library we've been using for class projects. This would (1), more easily allow us to implement mesh rendering as we would have an example on how to do so and (2) allow us to become much more familiar on how the application is actually running and what openGL calls it is actually making. Additionally, the project code seems to have trouble compiling on osx, seg faulting on the first openGL function call. This error is currently still undiagnosed, but our current test build with the new engine lacks this problem thanks to GLEW, allowing more flexibility with working remotely and at home.</p>
+    
+    <p>With the change mentioned in the previous point, adding collidable meshes would be simpler as the code from projects 2 to 4 have samples from which we can draw on to create our custom renderer. The dae parser would be extremely useful for creating new scenes in blender.</p>
+    
+    <p>We would love to be able to add water texturing using the methods of Yu and Turk, and van der Laan. This seems unlikely for the near future, but we believe is reasonable to finish by the final due date (or after even, this project is quite fun to develop).</p>
+    
+<h2>Deliverables:</h2>
+    <ul>
+        <li>
+            <a href=''>Presentation Slides</a>
+        </li>
+        <li>
+            <a href=''>Progress Video</a>
+        </li>
+    </ul>
+    
+</div>
+</body>
+</html>
+
