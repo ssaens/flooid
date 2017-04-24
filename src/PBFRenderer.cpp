@@ -48,7 +48,7 @@ void PBFRenderer::init() {
 
     up = Z_UP;
     hfov = M_PI;
-    vfov = M_PI;
+    vfov = 0.5 * M_PI;
     nearClip = 0;
     farClip = -10;
     min_view_distance = 0;
@@ -59,7 +59,7 @@ void PBFRenderer::init() {
 
 void PBFRenderer::render() {
     update_camera();
-    particles.step(0.0084);
+//    particles.step(0.0084);
     particles.render();
 }
 
