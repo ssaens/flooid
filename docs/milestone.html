@@ -87,7 +87,7 @@
     
     <p>To create a basic scene, we also implemented basic particle-plane collisions. If we find a particle is predicted to pass through a plane (its predicted position and current position are on opposite sides of the plane), we simply move the particle along the plane's normal until it is back on the correct side of the plane, adding a small offset <code><k>SURFACE_OFFSET</k></code> to prevent it from colliding immediately again.</p>
     
-    <p>More implementation details can be found in these <a href='https://docs.google.com/a/berkeley.edu/presentation/d/1gxRZjC3kC4wY7U23nX9OuJviDS6yqyzFEgxTwQX7XWw/edit?usp=sharing' target-'_blank'>slides</a>.</p>
+    <p>More implementation details can be found in these <a href='https://docs.google.com/a/berkeley.edu/presentation/d/1gxRZjC3kC4wY7U23nX9OuJviDS6yqyzFEgxTwQX7XWw/edit?usp=sharing' target='_blank'>slides</a>.</p>
     
 <h2>Preliminary Results</h2>
     <p>Having the algorithm implemented, we can render scenes with a small number of particles. The following scenes were rendered by generating a 25 x 20 x 25 block of particles (~12k particles) in a 1 meter^3 cubic tank. First we have a scene with only incompressibility constraints:</p>
