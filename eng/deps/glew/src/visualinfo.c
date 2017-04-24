@@ -291,7 +291,7 @@ VisualInfoARB (GLContext* ctx)
   attrib[7] = WGL_PIXEL_TYPE_ARB;
   /* WGL_TYPE_RGBA_ARB, WGL_TYPE_COLORINDEX_ARB,
      WGL_TYPE_RGBA_FLOAT_ATI (WGL_ATI_pixel_format_float) */
-  /* Color buffer information */
+  /* color buffer information */
   attrib[8] = WGL_COLOR_BITS_ARB;
   attrib[9] = WGL_RED_BITS_ARB;
   attrib[10] = WGL_GREEN_BITS_ARB;

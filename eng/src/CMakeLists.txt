@@ -5,24 +5,24 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 # eng library source files
 set(eng_SOURCE
         view.cpp
-        )
+        color.cpp)
 
 # eng library header files
 set(eng_HEADER
         eng.h
         view.h
-        )
+        renderer.h color.h)
 
 #-------------------------------------------------------------------------------
 # Building static library (always)
 #-------------------------------------------------------------------------------
-add_library(eng STATIC ${eng_SOURCE} ${eng_HEADER} view.cpp view.h)
+add_library(eng STATIC ${eng_SOURCE} ${eng_HEADER})
 
 target_link_libraries(
         eng
         ${GLEW_LIBRARIES}
         ${GLFW_LIBRARIES}
-        ${OPengL_LIBRARIES}
+        ${OPENGL_LIBRARIES}
         ${FREETYPE_LIBRARIES}
 )
 
@@ -35,7 +35,7 @@ if(eng_BUILD_SHARED)
             eng_SHARED
             ${GLEW_LIBRARIES}
             ${GLFW_LIBRARIES}
-            ${OPengL_LIBRARIES}
+            ${OPENGL_LIBRARIES}
             ${FREETYPE_LIBRARIES}
     )
 endif()
