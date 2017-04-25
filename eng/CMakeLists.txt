@@ -172,6 +172,9 @@ set_property(TARGET glew APPEND_STRING PROPERTY COMPILE_FLAGS -w )
 add_subdirectory("${eng_SOURCE_DIR}/deps/glfw")
 set_property(TARGET glfw APPEND_STRING PROPERTY COMPILE_FLAGS -w)
 
+add_subdirectory("${eng_SOURCE_DIR}/deps/assimp-3.3.1")
+set_property(TARGET assimp APPEND_STRING PROPERTY COMPILE_FLAGS -w)
+
 #-------------------------------------------------------------------------------
 # Set include directories
 #-------------------------------------------------------------------------------

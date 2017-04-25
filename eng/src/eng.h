@@ -7,5 +7,6 @@
 
 #include "renderer.h"
 #include "view.h"
+#include "color.h"
 
 #endif //FLOOID_ENG_H

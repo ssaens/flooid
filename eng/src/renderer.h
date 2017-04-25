@@ -54,11 +54,11 @@ namespace eng {
          virtual std::string info() = 0;
 
         // Event Handlers
-        virtual void resize(unsigned int w, unsigned int h) = 0;
-        virtual void key_event(char key) {}
-        virtual void cursor_event(float x, float y, unsigned char keys) {}
+        virtual void resize(size_t w, size_t h) = 0;
+        virtual void cursor_event(float x, float y) {}
         virtual void scroll_event(float offset_x, float offset_y) {}
-        virtual void mouse_button_event(int button, int event) {}
+        virtual void mouse_event(int key, int event, unsigned char mods) {}
+        virtual void keyboard_event(int key, int event, unsigned char mods) {}
 
         /**
          * View call this if the screen is HDPI

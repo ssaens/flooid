@@ -153,7 +153,7 @@ namespace eng {
             } else if (key == GLFW_KEY_GRAVE_ACCENT) {
                 show_info = !show_info;
             } else {
-                renderer->key_event(key);
+                renderer->keyboard_event(key, action, mods);
             }
         }
     }
@@ -171,21 +171,14 @@ namespace eng {
     }
 
     void View::cursor_callback(GLFWwindow *window, double xpos, double ypos) {
-        unsigned char keys = 0;
-        keys |= (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
-        keys <<= 1;
-        keys |= (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS);
-        keys <<= 1;
-        keys |= (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS);
-
         if (HDPI) {
             float cursor_x = 2 * xpos;
             float cursor_y = 2 * ypos;
-            renderer->cursor_event(cursor_x, cursor_y, keys);
+            renderer->cursor_event(cursor_x, cursor_y);
         } else {
             float cursor_x = xpos;
             float cursor_y = ypos;
-            renderer->cursor_event(cursor_x, cursor_y, keys);
+            renderer->cursor_event(cursor_x, cursor_y);
         }
     }
 
@@ -194,7 +187,7 @@ namespace eng {
     }
 
     void View::mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
-        renderer->mouse_button_event(button, action);
+        renderer->mouse_event(button, action, mods);
     }
 
 }

@@ -28,43 +28,43 @@ namespace eng {
          * Virtual Destructor
          * Frees renderer resources
          */
-         virtual ~Renderer() {}
+        virtual ~Renderer() {}
 
         /**
          * Initialize the renderer
          */
-         virtual void init() = 0;
+        virtual void init() = 0;
 
         /**
          * Render to window
          * Called on every frame update
          */
-         virtual void render() = 0;
+        virtual void render() = 0;
 
         /**
          * Get the renderer's name
          * Sets as window title
          */
-         virtual std::string name() = 0;
+        virtual std::string name() = 0;
 
         /**
          * Get render description
          * Shown in the renderer section of the HUD
          */
-         virtual std::string info() = 0;
+        virtual std::string info() = 0;
 
         // Event Handlers
-        virtual void resize(unsigned int w, unsigned int h) = 0;
-        virtual void key_event(char key) {}
-        virtual void cursor_event(float x, float y, unsigned char keys) {}
+        virtual void resize(size_t w, size_t h) = 0;
+        virtual void cursor_event(float x, float y) {}
         virtual void scroll_event(float offset_x, float offset_y) {}
-        virtual void mouse_button_event(int button, int event) {}
+        virtual void mouse_event(int key, int event, unsigned char mods) {}
+        virtual void keyboard_event(int key, int event, unsigned char mods) {}
 
         /**
          * View call this if the screen is HDPI
          */
         void use_hdpi_render_target() {
-                this->use_hdpi = true;
+            this->use_hdpi = true;
         };
 
     };

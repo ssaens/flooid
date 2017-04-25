@@ -5,13 +5,16 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 # eng library source files
 set(eng_SOURCE
         view.cpp
-        color.cpp)
+        color.cpp
+        )
 
 # eng library header files
 set(eng_HEADER
         eng.h
         view.h
-        renderer.h color.h)
+        renderer.h
+        color.h
+        )
 
 #-------------------------------------------------------------------------------
 # Building static library (always)
