@@ -70,7 +70,7 @@ extern "C" {
 #endif
 
 
-#include "assimp/include/assimp/Compiler/pushpack1.h"
+#include "./Compiler/pushpack1.h"
 
 // --------------------------------------------------------------------------------
 /** @brief Helper structure to represent a texel in a ARGB8888 format
@@ -105,7 +105,7 @@ struct aiTexel
 
 } PACK_STRUCT;
 
-#include "assimp/include/assimp/Compiler/poppack1.h"
+#include "./Compiler/poppack1.h"
 
 // --------------------------------------------------------------------------------
 /** Helper structure to describe an embedded texture

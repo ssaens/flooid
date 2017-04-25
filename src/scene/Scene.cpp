@@ -3,6 +3,7 @@
 //
 
 #include "Scene.h"
+#include <soil/SOIL.h>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 
@@ -51,12 +52,12 @@ Mesh Scene::process_mesh(aiMesh *mesh, const aiScene *scene) {
         vector.x = mesh->mVertices[i].x;
         vector.y = mesh->mVertices[i].y;
         vector.z = mesh->mVertices[i].z;
-        vertex.Position = vector;
+        vertex.pos = vector;
         // Normals
         vector.x = mesh->mNormals[i].x;
         vector.y = mesh->mNormals[i].y;
         vector.z = mesh->mNormals[i].z;
-        vertex.Normal = vector;
+        vertex.n = vector;
         // Texture Coordinates
         if (mesh->mTextureCoords[0]) // Does the mesh contain texture coordinates?
         {
@@ -65,9 +66,9 @@ Mesh Scene::process_mesh(aiMesh *mesh, const aiScene *scene) {
             // use models where a vertex can have multiple texture coordinates so we always take the first set (0).
             vec.x = mesh->mTextureCoords[0][i].x;
             vec.y = mesh->mTextureCoords[0][i].y;
-            vertex.TexCoords = vec;
+            vertex.tex = vec;
         } else
-            vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+            vertex.tex = glm::vec2(0.0f, 0.0f);
         vertices.push_back(vertex);
     }
     // Now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
@@ -88,10 +89,10 @@ Mesh Scene::process_mesh(aiMesh *mesh, const aiScene *scene) {
         // Normal: texture_normalN
 
         // 1. Diffuse maps
-        vector<Texture> diffuseMaps = this->loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+        vector<Texture> diffuseMaps = this->load_material_texture(material, aiTextureType_DIFFUSE, "texture_diffuse");
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
         // 2. Specular maps
-        vector<Texture> specularMaps = this->loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+        vector<Texture> specularMaps = this->load_material_texture(material, aiTextureType_SPECULAR, "texture_specular");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     }
 
@@ -101,7 +102,7 @@ Mesh Scene::process_mesh(aiMesh *mesh, const aiScene *scene) {
 
 // Checks all material textures of a given type and loads the textures if they're not loaded yet.
 // The required info is returned as a Texture struct.
-vector<Texture> Scene::load_material_textures(aiMaterial *mat, aiTextureType type, string typeName) {
+vector<Texture> Scene::load_material_texture(aiMaterial *mat, aiTextureType type, string typeName) {
     vector<Texture> textures;
     for (GLuint i = 0; i < mat->GetTextureCount(type); i++) {
         aiString str;

@@ -20,7 +20,7 @@ private:
     void load_scene(string path);
     void process_node(aiNode *node, const aiScene *scene);
     Mesh process_mesh(aiMesh *mesh, const aiScene *scene);
-    vector<Texture> load_material_textures(aiMaterial* mat, aiTextureType type,
+    vector<Texture> load_material_texture(aiMaterial* mat, aiTextureType type,
                                          string typeName);
     vector<Texture> textures_loaded;
 

@@ -44,7 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef AI_COLOR4D_H_INC
 #define AI_COLOR4D_H_INC
 
-#include "assimp/include/assimp/Compiler/pushpack1.h"
+#include "./Compiler/pushpack1.h"
 
 #ifdef __cplusplus
 
@@ -99,6 +99,6 @@ struct aiColor4D {
 
 #endif // __cplusplus
 
-#include "assimp/include/assimp/Compiler/poppack1.h"
+#include "./Compiler/poppack1.h"
 
 #endif // AI_COLOR4D_H_INC

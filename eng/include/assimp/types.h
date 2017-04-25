@@ -114,7 +114,7 @@ const size_t MAXLEN = 1024;
 #   define MAXLEN 1024
 #endif
 
-#include "assimp/include/assimp/Compiler/pushpack1.h"
+#include "./Compiler/pushpack1.h"
 
 // ----------------------------------------------------------------------------------
 /** Represents a plane in a three-dimensional, euclidean space
@@ -224,7 +224,7 @@ struct aiColor3D
     //! Red, green and blue color values
     float r, g, b;
 } PACK_STRUCT;  // !struct aiColor3D
-#include "assimp/include/assimp/Compiler/poppack1.h"
+#include "./Compiler/poppack1.h"
 
 // ----------------------------------------------------------------------------------
 /** Represents an UTF-8 string, zero byte terminated.

@@ -5,7 +5,7 @@
 #ifndef FLOOID_MESH_H
 #define FLOOID_MESH_H
 
-#include <glm/vec3.hpp>
+#include <glm/glm.hpp>
 #include <eng/eng.h>
 #include <vector>
 #include <assimp/types.h>
@@ -16,7 +16,7 @@ using namespace std;
 struct Vertex {
     glm::vec3 pos;
     glm::vec3 n;
-    glm::vec3 tex;
+    glm::vec2 tex;
 };
 
 struct Texture {

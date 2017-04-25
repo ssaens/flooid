@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define AI_MATRIX4X4_H_INC
 
 #include "vector3.h"
-#include "assimp/include/assimp/Compiler/pushpack1.h"
+#include "./Compiler/pushpack1.h"
 
 #ifdef __cplusplus
 
@@ -242,6 +242,6 @@ struct aiMatrix4x4 {
 
 #endif // __cplusplus
 
-#include "assimp/include/assimp/Compiler/poppack1.h"
+#include "./Compiler/poppack1.h"
 
 #endif // AI_MATRIX4X4_H_INC

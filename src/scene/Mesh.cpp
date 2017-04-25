@@ -42,7 +42,7 @@ void Mesh::init() {
     glBindVertexArray(0);
 }
 
-void Mesh::draw(Shader shader) {
+void Mesh::draw(Shader &shader) {
     GLuint diffuseNr = 1;
     GLuint specularNr = 1;
     for(GLuint i = 0; i < this->textures.size(); i++)
@@ -58,7 +58,7 @@ void Mesh::draw(Shader shader) {
             ss << specularNr++; // Transfer GLuint to stream
         number = ss.str();
 
-        glUniform1f(glGetUniformLocation(shader.Program, ("material." + name + number).c_str()), i);
+        glUniform1f(glGetUniformLocation(shader.PID, ("material." + name + number).c_str()), i);
         glBindTexture(GL_TEXTURE_2D, this->textures[i].id);
     }
     glActiveTexture(GL_TEXTURE0);
