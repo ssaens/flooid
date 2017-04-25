@@ -2,7 +2,9 @@
 // Created by Dillon Yao on 4/24/17.
 //
 
+#include <glm/glm.hpp>
 #include "Application.h"
+#include "utils.h"
 
 using namespace eng;
 using namespace std;
@@ -51,9 +53,44 @@ void Application::init() {
     CameraInfo camera_info;
     camera_info.hfov = 50;
     camera_info.vfov = 35;
-    camera_info.n_clip = 0.01;
-    camera_info.f_clip = 100;
+    camera_info.n_clip = 0.1f;
+    camera_info.f_clip = 100000;
     camera.configure(camera_info, screen_w, screen_h);
+
+    init_camera(camera_info, mat4x4());
+
+    // TODO: REPLACE WITH SCENE CODE
+
+    canonical_view_distance = 10000;
+    double view_distance = canonical_view_distance * 2;
+    double min_view_distance = canonical_view_distance / 10.0;
+    double max_view_distance = canonical_view_distance * 20.0;
+
+    vec3 target(0, 0, 0);
+    vec3 c_dir(0, 0, 1);
+
+    canonical_camera.place(target,
+                          acos(c_dir.y),
+                          atan2(c_dir.x, c_dir.z),
+                          view_distance,
+                          min_view_distance,
+                          max_view_distance);
+
+    camera.place(target,
+                 acos(c_dir.y),
+                 atan2(c_dir.x, c_dir.z),
+                 view_distance,
+                 min_view_distance,
+                 max_view_distance);
+
+//    pbf->load_scene("obj/box.obj");
+//
+//    ShaderInfo shader;
+//    shader.vertex_shader = "src/shader/model_loading.vs";
+//    shader.frag_shader = "src/shader/model_loading.frag";
+//    pbf->load_shader(shader);
+
+    set_scroll_rate();
 }
 
 
@@ -68,11 +105,13 @@ void Application::update_style() {
 
 void Application::render() {
     update_gl_camera();
+
     switch(mode) {
         case EDIT_MODE:
             if (show_coordinates) {
 //                draw_coordinates();
             }
+            pbf->render();
 //            scene->render_in_opengl();
             if (show_hud) {
 //                draw_hud();
@@ -96,9 +135,9 @@ void Application::update_gl_camera() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    const dvec3& c = camera.position();
-    const dvec3& r = camera.view_point();
-    const dvec3& u = camera.up_dir();
+    const vec3& c = camera.position();
+    const vec3& r = camera.view_point();
+    const vec3& u = camera.up_dir();
 
     gluLookAt(c.x, c.y, c.z,
               r.x, r.y, r.z,
@@ -220,7 +259,10 @@ void Application::mouse_event(int key, int event, unsigned char mods) {
 }
 
 void Application::keyboard_event(int key, int event, unsigned char mods) {
-    // TODO
+    switch(key) {
+        case ' ':
+            reset_camera();
+    }
 }
 
 void Application::mouse_pressed(e_mouse_button b) {

@@ -64,7 +64,9 @@ vec3 PBDSolver::delta_p(Particle *p_i, std::vector<Particle *> &neighborhood) {
     float s_corr;
     for (Particle *p_j : neighborhood) {
         s_corr = clamp(-k * pow(poly6(p_i->pred_p - p_j->pred_p, this->h) / poly6(dq, this->h), this->n), 0.0f, 0.0001f);
-        delta_p += (p_j->lambda + p_i->lambda + s_corr) * spiky_grad(p_i->pred_p - p_j->pred_p, this->h);
+        vec3 b = spiky_grad(p_i->pred_p - p_j->pred_p, this->h);
+        float a = (p_j->lambda + p_i->lambda + s_corr);
+        delta_p += a * b;
     }
     return (1 / this->rest_density) * delta_p;
 }

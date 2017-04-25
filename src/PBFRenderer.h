@@ -21,14 +21,19 @@ struct DrawStyle {
 class PBFRenderer {
 private:
     ParticleManager particles;
-//    Scene scene;
-
+    Scene scene;
+    Shader shader;
 
 public:
-    PBFRenderer(AppConfig &config) : particles{config} {}
-    void render() {}
-};
+    PBFRenderer(AppConfig &config) :
+            particles(config)
+    {}
 
+    void load_shader(ShaderInfo &path);
+    void load_scene(string path);
+
+    void render();
+};
 
 
 #endif //FLOOID_PBFRENDERER_H

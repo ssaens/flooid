@@ -17,7 +17,6 @@ private:
     vector<Mesh> meshes;
     string dir;
 
-    void load_scene(string path);
     void process_node(aiNode *node, const aiScene *scene);
     Mesh process_mesh(aiMesh *mesh, const aiScene *scene);
     vector<Texture> load_material_texture(aiMaterial* mat, aiTextureType type,
@@ -25,10 +24,9 @@ private:
     vector<Texture> textures_loaded;
 
 public:
-    Scene(GLchar *path) {
-        load_scene(path);
-    }
 
+    Scene() {}
+    void load_scene(string path);
     void draw(Shader &shader);
 
 };

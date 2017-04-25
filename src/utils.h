@@ -6,6 +6,9 @@
 #define FLOOID_UTILS_H
 
 #include <algorithm>
+#include <glm/glm.hpp>
+
+void draw_sphere(const glm::vec3& p, double r);
 
 void draw_sphere(double radius, unsigned int lats, unsigned int longs);
 

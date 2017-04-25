@@ -13,6 +13,7 @@
 #include "particle.h"
 #include "PBDSolver.h"
 #include "AppConfig.h"
+#include "scene/Plane.h"
 
 using namespace glm;
 
@@ -30,6 +31,8 @@ private:
     int solver_iters;
     float particle_radius;
     float particle_mass;
+
+    std::vector<Plane> planes;
 
 public:
     ParticleManager(AppConfig &config);

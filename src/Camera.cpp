@@ -37,6 +37,7 @@ void Camera::place(const dvec3 &target_pos, const double phi, const double theta
 }
 
 void Camera::copy_placement(const Camera &other) {
+    r = other.r;
     pos = other.pos;
     target_pos = other.target_pos;
     phi = other.phi;
@@ -44,6 +45,7 @@ void Camera::copy_placement(const Camera &other) {
     min_r = other.min_r;
     max_r = other.max_r;
     c2w = other.c2w;
+    compute_position();
 }
 
 void Camera::set_screen_size(const size_t screen_w, const size_t screen_h) {
@@ -55,7 +57,7 @@ void Camera::set_screen_size(const size_t screen_w, const size_t screen_h) {
 }
 
 void Camera::move_by(const double dx, const double dy, const double d) {
-    const double scale_factor = d / screen_dist;
+    const double scale_factor = d / screen_dist / 1000;
     const dvec3 &displacement = dvec3(c2w[0]) * (dx * scale_factor) + dvec3(c2w[1]) * (dy * scale_factor);
     pos += displacement;
     target_pos += displacement;

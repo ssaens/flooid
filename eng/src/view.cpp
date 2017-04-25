@@ -51,12 +51,17 @@ namespace eng {
     void View::init() {
         // initialize GLFW
         glfwSetErrorCallback(this->err_callback);
+
         if (!glfwInit()) {
             cerr << "Error: GLFW initialization failed" << endl;
             glfwTerminate();
             exit(EXIT_FAILURE);
         }
-
+//
+//        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+//        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+//        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+//        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         // create window
         string title = this->renderer ? this->renderer->name() : this->title;
         this->window = glfwCreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT, title.c_str(), NULL, NULL);
@@ -79,6 +84,7 @@ namespace eng {
         glfwSetMouseButtonCallback(this->window, this->mouse_button_callback);
 
         // init GLEW
+        glewExperimental = GL_TRUE;
         if (glewInit() != GLEW_OK) {
             cerr << "Error: GLEW initialization failed" << endl;
             glfwTerminate();

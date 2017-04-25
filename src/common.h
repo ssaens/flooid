@@ -12,6 +12,7 @@ using namespace std;
 using namespace glm;
 
 const bool RADOMIZE_OFFSET = false;
+const float SURFACE_OFFSET = 0.00001f;
 const int SOLVER_ITERS = 4;
 
 const vec3 ACCEL_GRAVITY(0, -9.8, 0);

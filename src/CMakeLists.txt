@@ -12,6 +12,7 @@ set(FLOOID_SOURCE
 
         scene/Scene.cpp
         scene/Mesh.cpp
+        scene/Plane.cpp
 
         shader/Shader.cpp)
 
@@ -29,8 +30,11 @@ set(FLOOID_HEADER
 
         scene/Scene.h
         scene/Mesh.h
+        scene/Plane.h
 
-        shader/Shader.h AppConfig.h)
+        shader/Shader.h
+
+        AppConfig.h)
 
 
 #-------------------------------------------------------------------------------

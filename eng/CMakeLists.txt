@@ -197,8 +197,12 @@ link_directories(
         ${GLEW_LIBRARY_DIRS}
         ${GLFW_LIBRARY_DIRS}
         ${FREETYPE_LIBRARY_DIRS}
-        ${ASSIMP_LIBRARY_DIRS}
-        ${SOIL_LIBRARY_DIRS}
+)
+
+# I hate cmake
+link_libraries(
+        ${SOIL_LIBRARIES}
+        assimp
 )
 
 #-------------------------------------------------------------------------------

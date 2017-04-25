@@ -12,10 +12,16 @@
 
 #include <GL/glew.h>
 
+struct ShaderInfo {
+    std::string vertex_shader;
+    std::string frag_shader;
+};
+
 struct Shader {
     GLuint PID;
 
-    Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
+    Shader() {}
+    Shader(const ShaderInfo& info);
 
     void use();
 };

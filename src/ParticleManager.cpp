@@ -23,10 +23,10 @@ ParticleManager::ParticleManager(AppConfig &config) :
     ) {
 
     int nx = 5;
-    int ny = 5;
+    int ny = 10;
     int nz = 5;
 
-    float d = PARTICLE_RADIUS * 2;
+    float d = particle_radius * 2;
     for (int x = 0; x < nx; ++x) {
         for (int y = 3; y < 3 + ny; ++y) {
             for (int z = 0; z < nz; ++z) {
@@ -37,6 +37,19 @@ ParticleManager::ParticleManager(AppConfig &config) :
             }
         }
     }
+
+    Plane ground(glm::dvec3(0, 0, 0), glm::dvec3(0, 1, 0), 0);
+    Plane side0(glm::dvec3(1, 0, 0), glm::dvec3(1, 0, 0), 0);
+    Plane side1(glm::dvec3(0, 0, 1), glm::dvec3(0, 0, 1), 0);
+    Plane side2(glm::dvec3(-2, 0, 0), glm::dvec3(1, 0, 0), 0);
+    Plane side3(glm::dvec3(0, 0, -1), glm::dvec3(0, 0, 1), 0);
+    Plane side4(glm::dvec3(0, 3, 0), glm::dvec3(0, 1, 0), 0);
+    planes.push_back(ground);
+    planes.push_back(side0);
+    planes.push_back(side1);
+    planes.push_back(side2);
+    planes.push_back(side3);
+    planes.push_back(side4);
 }
 
 void ParticleManager::render() const {
@@ -65,6 +78,7 @@ void ParticleManager::render() const {
         glTranslatef(par.p.x, par.p.y, par.p.z);
         draw_sphere(PARTICLE_RADIUS, 10, 10);
         glPopMatrix();
+//        draw_sphere(par.p, PARTICLE_RADIUS);
     }
     glPopAttrib();
 }
@@ -96,7 +110,7 @@ void ParticleManager::step(float dt) {
 
     for (int i = 0; i < solver_iters; ++i) {
         for (Particle &p_i : particles) {
-            double lambda = solver.lambda_i(&p_i, p_i.neighborhood);
+            float lambda = solver.lambda_i(&p_i, p_i.neighborhood);
             p_i.lambda = lambda;
         }
         for (Particle &p_i : particles) {
@@ -104,14 +118,13 @@ void ParticleManager::step(float dt) {
         }
         for (Particle &p_i : particles) {
             p_i.pred_p += p_i.d_p;
-//            for (Plane *plane : planes)
-//                plane->collide(p_i);
+            for (Plane &plane : planes)
+                plane.collide(p_i);
         }
     }
 
     for (Particle& p : particles) {
         p.v = (1.f / dt) * (p.pred_p - p.p);
-
         p.f += solver.f_vorticity(&p, p.neighborhood);
         p.v = solver.XSPH_vel(&p, p.neighborhood);
         p.p = p.pred_p;

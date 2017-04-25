@@ -4,8 +4,10 @@
 
 #include "Shader.h"
 
-Shader::Shader(const GLchar *vertexPath, const GLchar *fragmentPath) {
+Shader::Shader(const ShaderInfo& info) {
     // 1. Retrieve the vertex/fragment source code from filePath
+    const GLchar *vertexPath = info.vertex_shader.c_str();
+    const GLchar *fragmentPath = info.frag_shader.c_str();
     std::string vertexCode;
     std::string fragmentCode;
     std::ifstream vShaderFile;
