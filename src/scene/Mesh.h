@@ -8,6 +8,7 @@
 #include <glm/vec3.hpp>
 #include <eng/eng.h>
 #include <vector>
+#include <assimp/types.h>
 #include "../shader/Shader.h"
 
 using namespace std;
@@ -21,22 +22,24 @@ struct Vertex {
 struct Texture {
     GLuint id;
     string type;
+    aiString path;
 };
 
 class Mesh {
 private:
+/*  Render data  */
+    GLuint VAO, VBO, EBO;
+    /*  Functions    */
+    void init();
+
+public:
     /*  Mesh Data  */
     vector<Vertex> vertices;
     vector<GLuint> indices;
     vector<Texture> textures;
     /*  Functions  */
     Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures);
-    void draw(Shader shader);
-public:
-/*  Render data  */
-    GLuint VAO, VBO, EBO;
-    /*  Functions    */
-    void init();
+    void draw(Shader &shader);
 };
 
 
