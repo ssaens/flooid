@@ -3,6 +3,8 @@ project(flooid)
 
 set(CMAKE_CXX_STANDARD 11)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -c")
+
 #-------------------------------------------------------------------------------
 # Build options
 #-------------------------------------------------------------------------------
@@ -153,6 +155,8 @@ endif(WIN32)
 find_package(OpenGL REQUIRED)
 find_package(Freetype REQUIRED)
 
+MESSAGE(STATUS ${SOIL_INCLUDE_DIRS})
+
 # eng
 if(BUILD_LIBeng)
     add_subdirectory(eng)
@@ -177,4 +181,4 @@ if(BUILD_DOCS)
 endif()
 
 # Install settings
-set(CMAKE_INSTALL_PREFIX "${ColladaViewer_SOURCE_DIR}/")
+set(CMAKE_INSTALL_PREFIX "${flooid_SOURCE_DIR}/")

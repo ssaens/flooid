@@ -161,7 +161,7 @@ link_directories(/usr/lib/x86_64-linux-gnu/mesa/)
 find_package(OpenGL REQUIRED)
 find_package(Freetype REQUIRED)
 
-include_directories( ${OPENGL_INCLUDE_DIRS})
+include_directories(${OPENGL_INCLUDE_DIRS})
 
 # Use pkg-config for GLEW & GLFW if available
 find_package(PkgConfig QUIET)
@@ -175,6 +175,9 @@ set_property(TARGET glfw APPEND_STRING PROPERTY COMPILE_FLAGS -w)
 add_subdirectory("${eng_SOURCE_DIR}/deps/assimp-3.3.1")
 set_property(TARGET assimp APPEND_STRING PROPERTY COMPILE_FLAGS -w)
 
+add_subdirectory("${eng_SOURCE_DIR}/deps/soil")
+set_property(TARGET soil APPEND_STRING PROPERTY COMPILE_FLAGS -w)
+
 #-------------------------------------------------------------------------------
 # Set include directories
 #-------------------------------------------------------------------------------
@@ -184,6 +187,7 @@ include_directories(
         ${GLFW_INCLUDE_DIRS}
         ${FREETYPE_INCLUDE_DIRS}
         ${ASSIMP_INCLUDE_DIRS}
+        ${SOIL_INCLUDE_DIRS}
 )
 
 #-------------------------------------------------------------------------------
@@ -194,6 +198,7 @@ link_directories(
         ${GLFW_LIBRARY_DIRS}
         ${FREETYPE_LIBRARY_DIRS}
         ${ASSIMP_LIBRARY_DIRS}
+        ${SOIL_LIBRARY_DIRS}
 )
 
 #-------------------------------------------------------------------------------
