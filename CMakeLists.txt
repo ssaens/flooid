@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 #-------------------------------------------------------------------------------
 # Build options
 #-------------------------------------------------------------------------------
-option(BUILD_LIBeng     "Build with libeng"         ON)
+option(BUILD_LIBeng    "Build with libeng"             ON)
 option(BUILD_DEBUG     "Build with debug settings"    OFF)
 option(BUILD_DOCS      "Build documentation"          OFF)
 

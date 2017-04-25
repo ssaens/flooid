@@ -28,5 +28,9 @@ const double PRESSURE_STRENGTH = 0.1;
 const double PRESSURE_POW = 4;
 const dvec3 DELTA_Q(0.2 * KERNEL_RADIUS, 0, 0);
 
+const float EPS_F = 0.00001f;
+
+const int DEFAULT_WIDTH = 1200;
+const int DEFAULT_HEIGHT = 800;
 
 #endif //FLOOID_COMMON_H

@@ -6,7 +6,14 @@ set(FLOOID_SOURCE
         ParticleManager.cpp
         PBDSolver.cpp
         utils.cpp
-        PBFRenderer.cpp)
+        PBFRenderer.cpp
+        Application.cpp
+        Camera.cpp
+
+        scene/Scene.cpp
+        scene/Mesh.cpp
+
+        shader/Shader.cpp)
 
 # flooid header
 set(FLOOID_HEADER
@@ -16,7 +23,14 @@ set(FLOOID_HEADER
         kernels.h
         utils.h
         common.h
-        PBFRenderer.h)
+        PBFRenderer.h
+        Application.h
+        Camera.h
+
+        scene/Scene.h
+        scene/Mesh.h
+
+        shader/Shader.h)
 
 
 #-------------------------------------------------------------------------------
