@@ -5,9 +5,9 @@
 #ifndef FLOOID_PBFRENDERER_H
 #define FLOOID_PBFRENDERER_H
 
-#include <eng/eng.h>
-#include <glm/glm.hpp>
 #include "ParticleManager.h"
+#include "scene/Scene.h"
+#include "AppConfig.h"
 
 using namespace eng;
 using namespace std;
@@ -18,8 +18,15 @@ struct DrawStyle {
     Color planeColor;
 };
 
-class PBFRenderer : public Renderer {
+class PBFRenderer {
+private:
+    ParticleManager particles;
+//    Scene scene;
 
+
+public:
+    PBFRenderer(AppConfig &config) : particles{config} {}
+    void render() {}
 };
 
 

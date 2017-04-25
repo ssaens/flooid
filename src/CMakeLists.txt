@@ -30,7 +30,7 @@ set(FLOOID_HEADER
         scene/Scene.h
         scene/Mesh.h
 
-        shader/Shader.h)
+        shader/Shader.h AppConfig.h)
 
 
 #-------------------------------------------------------------------------------

@@ -20,36 +20,36 @@ PBDSolver::PBDSolver() :
 
 }
 
-PBDSolver::PBDSolver(double rest_density, double h, double eps, double c, double k, double n, dvec3 dq) :
+PBDSolver::PBDSolver(float rest_density, float h, float eps, float c, float k, float n, vec3 dq) :
         rest_density(rest_density), h(h), eps(eps), c(c), k(k), n(n), dq(dq) {
 
 }
 
-double PBDSolver::rho_i(Particle *p_i, std::vector<Particle *> &neighborhood) {
-    double rho = 0;
+float PBDSolver::rho_i(Particle *p_i, std::vector<Particle *> &neighborhood) {
+    float rho = 0;
     for (Particle *p_j : neighborhood) {
         rho += p_j->m * poly6(p_i->pred_p - p_j->pred_p, this->h);
     }
     return rho;
 }
 
-double PBDSolver::lambda_i(Particle *p_i, std::vector<Particle *> &neighborhood) {
-    double lambda = 0;
+float PBDSolver::lambda_i(Particle *p_i, std::vector<Particle *> &neighborhood) {
+    float lambda = 0;
     for (Particle *p_k : neighborhood) {
-        dvec3 grad_k_ci = grad_k_Ci(p_k, p_i, neighborhood);
+        vec3 grad_k_ci = grad_k_Ci(p_k, p_i, neighborhood);
         lambda += pow(length(grad_k_ci), 2);
     }
     lambda = -C_i(p_i, neighborhood) * (1 / (lambda + this->eps));
     return lambda;
 }
 
-double PBDSolver::C_i(Particle *p_i, std::vector<Particle *> &neighborhood) {
+float PBDSolver::C_i(Particle *p_i, std::vector<Particle *> &neighborhood) {
     return rho_i(p_i, neighborhood) / this->rest_density - 1;
 }
 
-dvec3 PBDSolver::grad_k_Ci(Particle *p_k, Particle *p_i, std::vector<Particle *> &neighborhood) {
+vec3 PBDSolver::grad_k_Ci(Particle *p_k, Particle *p_i, std::vector<Particle *> &neighborhood) {
     if (p_k == p_i) {
-        dvec3 grad_spiky;
+        vec3 grad_spiky;
         for (Particle *p_j : neighborhood) {
             grad_spiky += spiky_grad(p_i->pred_p - p_j->pred_p, this->h);
         }
@@ -59,42 +59,42 @@ dvec3 PBDSolver::grad_k_Ci(Particle *p_k, Particle *p_i, std::vector<Particle *>
     }
 }
 
-dvec3 PBDSolver::delta_p(Particle *p_i, std::vector<Particle *> &neighborhood) {
-    dvec3 delta_p;
-    double s_corr;
+vec3 PBDSolver::delta_p(Particle *p_i, std::vector<Particle *> &neighborhood) {
+    vec3 delta_p;
+    float s_corr;
     for (Particle *p_j : neighborhood) {
-        s_corr = clamp(-k * pow(poly6(p_i->pred_p - p_j->pred_p, this->h) / poly6(dq, this->h), this->n), 0.0, 0.0001);
+        s_corr = clamp(-k * pow(poly6(p_i->pred_p - p_j->pred_p, this->h) / poly6(dq, this->h), this->n), 0.0f, 0.0001f);
         delta_p += (p_j->lambda + p_i->lambda + s_corr) * spiky_grad(p_i->pred_p - p_j->pred_p, this->h);
     }
     return (1 / this->rest_density) * delta_p;
 }
 
-dvec3 PBDSolver::vorticity(Particle *p_i, std::vector<Particle *> &neighborhood) {
-    dvec3 w;
+vec3 PBDSolver::vorticity(Particle *p_i, std::vector<Particle *> &neighborhood) {
+    vec3 w;
     for (Particle *p_j : neighborhood) {
-        dvec3 v_ij = p_j->v - p_i->v;
+        vec3 v_ij = p_j->v - p_i->v;
         w += cross(v_ij, spiky_grad(p_i->pred_p - p_j->pred_p, this->h));
     }
     return w;
 }
 
-dvec3 PBDSolver::f_vorticity(Particle *p_i, std::vector<Particle *> &neighborhood) {
-    dvec3 force;
-    dvec3 w = this->vorticity(p_i, neighborhood);
-    double rho = this->rho_i(p_i, neighborhood);
+vec3 PBDSolver::f_vorticity(Particle *p_i, std::vector<Particle *> &neighborhood) {
+    vec3 force;
+    vec3 w = this->vorticity(p_i, neighborhood);
+    float rho = this->rho_i(p_i, neighborhood);
     for (Particle *p_j : neighborhood) {
-        dvec3 p_x = (p_i->m * p_i->pred_p + p_j->m * p_j->pred_p) * (1.f / (p_i->m + p_j->m));
-        dvec3 eta = p_x - p_i->pred_p;
-        dvec3 N = normalize(eta);
+        vec3 p_x = (p_i->m * p_i->pred_p + p_j->m * p_j->pred_p) * (1.f / (p_i->m + p_j->m));
+        vec3 eta = p_x - p_i->pred_p;
+        vec3 N = normalize(eta);
         force += this->eps * (cross(N, w)) * rho;
     }
     return force;
 }
 
-dvec3 PBDSolver::XSPH_vel(Particle *p_i, std::vector<Particle *> &neighborhood) {
-    dvec3 v;
+vec3 PBDSolver::XSPH_vel(Particle *p_i, std::vector<Particle *> &neighborhood) {
+    vec3 v;
     for (Particle *p_j : neighborhood) {
-        dvec3 v_ij = p_j->v - p_i->v;
+        vec3 v_ij = p_j->v - p_i->v;
         v += v_ij * poly6(p_i->v - p_j->v, this->h);
     }
     return p_i->v + this->c * v;

@@ -8,7 +8,19 @@
 
 using namespace glm;
 
-ParticleManager::ParticleManager() {
+ParticleManager::ParticleManager(AppConfig &config) :
+    solver_iters(config.solver_iters),
+    particle_radius(config.particle_radius),
+    particle_mass(config.particle_mass),
+    solver(
+        config.rest_density,
+        config.kernel_radius,
+        config.eps,
+        config.viscosity,
+        config.pressure_strength,
+        config.pressure_power,
+        config.delta_q
+    ) {
 
     int nx = 5;
     int ny = 5;
@@ -57,7 +69,7 @@ void ParticleManager::render() const {
     glPopAttrib();
 }
 
-void ParticleManager::step(double dt) {
+void ParticleManager::step(float dt) {
     for (Particle &p : particles) {
         for (auto accel : EXTERNAL_ACCELRATIONS) {
             p.f += accel * p.m;
@@ -65,7 +77,7 @@ void ParticleManager::step(double dt) {
     }
 
     for (Particle &p : particles) {
-        p.v = p.v + p.f * (1. / p.m) * dt;
+        p.v = p.v + p.f * (1.f / p.m) * dt;
         p.pred_p = p.p + p.v * dt;
     }
 
@@ -82,7 +94,7 @@ void ParticleManager::step(double dt) {
         p.neighborhood = this->neighborhood(p);
     }
 
-    for (int i = 0; i < SOLVER_ITERS; ++i) {
+    for (int i = 0; i < solver_iters; ++i) {
         for (Particle &p_i : particles) {
             double lambda = solver.lambda_i(&p_i, p_i.neighborhood);
             p_i.lambda = lambda;
@@ -97,22 +109,11 @@ void ParticleManager::step(double dt) {
         }
     }
 
-    // for (Particle &p : particles) {
-    //     std::vector<Particle *> neighbors = this->neighbors(p);
-    //     for (Particle *neighbor : neighbors) {
-    //         this->collide_particles(p, *neighbor);
-    //     }
-    // }s
-
     for (Particle& p : particles) {
         p.v = (1.f / dt) * (p.pred_p - p.p);
-        // printify("\tpred pos", p.pred_p);
-        // printify("\tpos", p.pos);
-        // printify("vorticity vocity before", p.v);
 
         p.f += solver.f_vorticity(&p, p.neighborhood);
         p.v = solver.XSPH_vel(&p, p.neighborhood);
-        // printify("vort vel after", p.vel);
         p.p = p.pred_p;
         p.f = glm::dvec3(0, 0, 0);
     }

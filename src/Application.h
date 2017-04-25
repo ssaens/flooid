@@ -6,48 +6,12 @@
 #define FLOOID_APPLICATION_H
 
 #include <eng/eng.h>
-#include <glm/glm.hpp>
 #include <vector>
-#include "common.h"
 #include "PBFRenderer.h"
 #include "Camera.h"
+#include "AppConfig.h"
 
 using namespace eng;
-using namespace glm;
-
-struct AppConfig {
-    // Physical Properties
-    std::vector<dvec3> EXTERNAL_ACCELERATIONS;
-
-    // Particle Properties
-    double particle_radius;
-    double particle_mass;
-
-    // PBD Solver Configurations
-    bool solver_iters;
-    double rest_density;
-    double kernel_radius;
-    double eps;
-    double pressure_strength;
-    double pressure_power;
-    dvec3 delta_q;
-
-    AppConfig() {
-        EXTERNAL_ACCELERATIONS = {
-                ACCEL_GRAVITY,
-        };
-        particle_radius = PARTICLE_RADIUS;
-        particle_mass = PARTICLE_MASS;
-
-        solver_iters = SOLVER_ITERS;
-        rest_density = REST_DENSITY;
-        kernel_radius = KERNEL_RADIUS;
-        eps = EPS;
-        pressure_strength = PRESSURE_STRENGTH;
-        pressure_power = PRESSURE_POW;
-        delta_q = DELTA_Q;
-    }
-};
 
 class Application : public Renderer {
 private:
@@ -144,7 +108,7 @@ public:
      * @param config : application configuration
      * @param gl :
      */
-    Application(AppConfig config, bool gl=true);
+    Application(AppConfig &config, bool gl=true);
 
     ~Application();
 

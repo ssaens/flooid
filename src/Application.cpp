@@ -7,11 +7,9 @@
 using namespace eng;
 using namespace std;
 
-Application::Application(AppConfig config, bool gl) {
+Application::Application(AppConfig &config, bool gl) {
     gl_window = gl;
-    pbf = new PBFRenderer(
-
-    );
+    pbf = new PBFRenderer(config);
 }
 
 Application::~Application() {
@@ -73,11 +71,11 @@ void Application::render() {
     switch(mode) {
         case EDIT_MODE:
             if (show_coordinates) {
-                draw_coordinates();
+//                draw_coordinates();
             }
 //            scene->render_in_opengl();
             if (show_hud) {
-                draw_hud();
+//                draw_hud();
             }
             break;
         case RENDER_MODE:

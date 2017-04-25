@@ -12,6 +12,7 @@
 #include <map>
 #include "particle.h"
 #include "PBDSolver.h"
+#include "AppConfig.h"
 
 using namespace glm;
 
@@ -26,10 +27,15 @@ private:
 
     PBDSolver solver;
 
+    int solver_iters;
+    float particle_radius;
+    float particle_mass;
+
 public:
-    ParticleManager();
+    ParticleManager(AppConfig &config);
+    ~ParticleManager() { spacial_map.clear(); }
     void render() const;
-    void step(double dt);
+    void step(float dt);
 };
 
 

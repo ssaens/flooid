@@ -9,27 +9,27 @@
 
 class PBDSolver {
 private:
-    double rest_density;
-    double eps;
-    double h;
-    double c;
-    double k;
-    double n;
-    dvec3 dq;
+    float rest_density;
+    float eps;
+    float h;
+    float c;
+    float k;
+    float n;
+    vec3 dq;
 
-    double rho_i(Particle *p_i, std::vector<Particle *> &neighborhood);
-    double C_i(Particle *p_i, std::vector<Particle *> &neighborhood);
-    glm::dvec3 grad_k_Ci(Particle *p_k, Particle *p_i, std::vector<Particle *> &neighborhood);
-    glm::dvec3 vorticity(Particle *p_i, std::vector<Particle *> &neighborhood);
+    float rho_i(Particle *p_i, std::vector<Particle *> &neighborhood);
+    float C_i(Particle *p_i, std::vector<Particle *> &neighborhood);
+    glm::vec3 grad_k_Ci(Particle *p_k, Particle *p_i, std::vector<Particle *> &neighborhood);
+    glm::vec3 vorticity(Particle *p_i, std::vector<Particle *> &neighborhood);
 
 public:
     PBDSolver();
-    PBDSolver(double rest_density, double h, double eps, double c, double k, double n, dvec3 dq);
+    PBDSolver(float rest_density, float h, float eps, float c, float k, float n, vec3 dq);
 
-    double lambda_i(Particle *p_i, std::vector<Particle *> &neighborhood);
-    glm::dvec3 delta_p(Particle *p_i, std::vector<Particle *> &neighborhood);
-    glm::dvec3 f_vorticity(Particle *p_i, std::vector<Particle *> &neighborhood);
-    glm::dvec3 XSPH_vel(Particle *p_i, std::vector<Particle *> &neighborhood);
+    float lambda_i(Particle *p_i, std::vector<Particle *> &neighborhood);
+    glm::vec3 delta_p(Particle *p_i, std::vector<Particle *> &neighborhood);
+    glm::vec3 f_vorticity(Particle *p_i, std::vector<Particle *> &neighborhood);
+    glm::vec3 XSPH_vel(Particle *p_i, std::vector<Particle *> &neighborhood);
 };
 
 
