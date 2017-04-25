@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef AI_MATRIX3x3_H_INC
 #define AI_MATRIX3x3_H_INC
 
-#include "./Compiler/pushpack1.h"
+#include "assimp/include/assimp/Compiler/pushpack1.h"
 
 #ifdef __cplusplus
 
@@ -177,6 +177,6 @@ struct aiMatrix3x3 {
 
 #endif // __cplusplus
 
-#include "./Compiler/poppack1.h"
+#include "assimp/include/assimp/Compiler/poppack1.h"
 
 #endif // AI_MATRIX3x3_H_INC

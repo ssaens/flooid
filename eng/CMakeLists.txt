@@ -183,6 +183,7 @@ include_directories(
         ${GLEW_INCLUDE_DIRS}
         ${GLFW_INCLUDE_DIRS}
         ${FREETYPE_INCLUDE_DIRS}
+        ${ASSIMP_INCLUDE_DIRS}
 )
 
 #-------------------------------------------------------------------------------
@@ -192,6 +193,7 @@ link_directories(
         ${GLEW_LIBRARY_DIRS}
         ${GLFW_LIBRARY_DIRS}
         ${FREETYPE_LIBRARY_DIRS}
+        ${ASSIMP_LIBRARY_DIRS}
 )
 
 #-------------------------------------------------------------------------------

@@ -50,7 +50,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #   include <math.h>
 #endif
 
-#include "./Compiler/pushpack1.h"
+#include "assimp/include/assimp/Compiler/pushpack1.h"
 
 #ifdef __cplusplus
 
@@ -139,7 +139,7 @@ struct aiVector3D {
 
 #endif // __cplusplus
 
-#include "./Compiler/poppack1.h"
+#include "assimp/include/assimp/Compiler/poppack1.h"
 
 #ifdef __cplusplus
 
