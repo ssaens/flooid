@@ -5,12 +5,19 @@
 #ifndef FLOOID_SHADER_H
 #define FLOOID_SHADER_H
 
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <iostream>
 
+#include <GL/glew.h>
 
-class Shader {
+struct Shader {
+    GLuint PID;
 
+    Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
+
+    void use();
 };
-
-
 
 #endif //FLOOID_SHADER_H

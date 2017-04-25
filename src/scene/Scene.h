@@ -6,11 +6,9 @@
 #define FLOOID_SCENE_H
 
 
-
 class Scene {
 
 };
-
 
 
 #endif //FLOOID_SCENE_H
