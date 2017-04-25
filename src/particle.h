@@ -16,15 +16,15 @@ using namespace eng;
  * Particle Struct
  */
 struct Particle {
-    dvec3 p;            // pos vector
-    dvec3 pred_p;       // predicted pos vector
-    dvec3 d_p;          // pressure correction vector
-    dvec3 v;            // velocity vector
+    vec3 p;            // pos vector
+    vec3 pred_p;       // predicted pos vector
+    vec3 d_p;          // pressure correction vector
+    vec3 v;            // velocity vector
 
-    dvec3 f;            // accumulated forces
-    double m;           // mass
-    double lambda;      // lambda for constraint solution
-    double rho;         // pressure constant for particle
+    vec3 f;            // accumulated forces
+    float m;           // mass
+    float lambda;      // lambda for constraint solution
+    float rho;         // pressure constant for particle
 
     Color color;        // color or particle
 
@@ -39,17 +39,17 @@ struct Particle {
      * Constructor
      * Creates a particle with the specified position
      */
-    Particle(double x, double y, double z) : p(x, y, z) {}
+    Particle(float x, float y, float z) : p(x, y, z) {}
     Particle(dvec3 &p) : p(p) {}
 
     /**
      * Constructor
      * Creates a particle with the specified position and velocity
      */
-    Particle(double x,  double y,  double z,
-             double dx, double dy, double dz) : p(x, y, z), v(dx, dy, dz) {}
+    Particle(float x,  float y,  float z,
+             float dx, float dy, float dz) : p(x, y, z), v(dx, dy, dz) {}
 
-    Particle(dvec3 &p, dvec3 &v) : p(p), v(p) {}
+    Particle(vec3 &p, vec3 &v) : p(p), v(p) {}
 };
 
 #endif //FLOOID_PARTICLE_H
