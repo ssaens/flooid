@@ -13,6 +13,12 @@ void Scene::draw(Shader &shader) {
     }
 }
 
+void Scene::draw() {
+    for (Mesh &mesh : meshes) {
+        mesh.draw();
+    }
+}
+
 void Scene::load_scene(string path) {
     Assimp::Importer import;
     const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);

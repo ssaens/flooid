@@ -28,6 +28,7 @@ public:
     Scene() {}
     void load_scene(string path);
     void draw(Shader &shader);
+    void draw();
 
 };
 

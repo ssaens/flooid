@@ -3,7 +3,6 @@
 //
 
 #include "ParticleManager.h"
-#include "common.h"
 #include "utils.h"
 
 using namespace glm;
@@ -79,7 +78,7 @@ void ParticleManager::render() const {
     for (const Particle &par : particles) {
         glPushMatrix();
         glTranslatef(par.p.x, par.p.y, par.p.z);
-        draw_sphere(PARTICLE_RADIUS, 10, 10);
+        draw_sphere(particle_radius * 0.9, 10, 10);
         glPopMatrix();
     }
     glPopAttrib();

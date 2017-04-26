@@ -3,6 +3,7 @@
 //
 
 #include "Mesh.h"
+#include "../utils.h"
 
 Mesh::Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures) {
     this->vertices = vertices;
@@ -67,4 +68,33 @@ void Mesh::draw(Shader &shader) {
     glBindVertexArray(this->VAO);
     glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+}
+
+void Mesh::draw() {
+//    glUseProgram(0);
+//    glBindVertexArray(this->VAO);
+//    glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
+//    glBindVertexArray(0);
+
+    for (auto i = this->indices.begin(); i != this->indices.end();) {
+        dvec3 face[3];
+        dvec3 normal;
+        for (int v = 0; v < 3; ++v) {
+            face[v] = this->vertices[*i].pos;
+            normal += this->vertices[*i].n;
+            ++i;
+        }
+        normal = normalize(normal);
+        fvec3 color(0, 1, 0);
+        draw_triangle(face[0], face[1], face[2], normal, color);
+    }
+
+//    draw_triangle(dvec3(-1, 0, 0),
+//                dvec3(1, 0, 0),
+//                dvec3(0, 1, 0),
+//                fvec3(1, 0, 0));
+//    draw_triangle(dvec3(-1, 0, 1),
+//                  dvec3(1, 0, 1),
+//                  dvec3(0, 1, 1),
+//                  fvec3(0, 1, 0));
 }

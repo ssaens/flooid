@@ -40,6 +40,7 @@ public:
     /*  Functions  */
     Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures);
     void draw(Shader &shader);
+    void draw();
 };
 
 

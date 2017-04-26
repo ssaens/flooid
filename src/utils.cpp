@@ -153,3 +153,35 @@ void draw_sphere(const glm::vec3& p, double r) {
     }
     glPopMatrix();
 }
+
+
+void draw_triangle(dvec3& p1, dvec3& p2, dvec3& p3, dvec3& normal, fvec3& color) {
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset( 1.0, 1.0 );
+
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+    glColor3f(color.r, color.g, color.b);
+
+    glEnable(GL_COLOR_MATERIAL);
+
+    // Start specifying the polygon.
+    glBegin(GL_POLYGON);
+
+    // Set the normal of this face.
+    glNormal3dv( &normal.x );
+
+    glNormal3dv( &normal.x );
+    // Draw this vertex.
+    glVertex3dv( &p1.x );
+
+    glNormal3dv( &normal.x );
+    // Draw this vertex.
+    glVertex3dv( &p2.x );
+
+    glNormal3dv( &normal.x );
+    // Draw this vertex.
+    glVertex3dv( &p3.x );
+
+    // Finish drawing the polygon.
+    glEnd();
+}

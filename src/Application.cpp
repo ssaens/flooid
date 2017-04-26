@@ -86,7 +86,7 @@ void Application::init() {
                  min_view_distance,
                  max_view_distance);
 
-//    pbf->load_scene("obj/box.obj");
+//    pbf->load_scene("obj/teapot.obj");
 //
 //    ShaderInfo shader;
 //    shader.vertex_shader = "src/shader/model_loading.vs";
