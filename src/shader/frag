@@ -1,0 +1,41 @@
+uniform int outputID;
+uniform vec3 eyePos;
+varying vec3 normal;
+varying vec3 vertex;
+uniform sampler2D tex;
+
+#define PI 3.1415926
+
+vec3 shadeDiffuseFromEye();
+
+vec3 shadePhong(vec3 lightPos);
+
+vec3 shadeEnvmapReflection();
+
+void main()
+{
+    if(outputID == 0)
+    {
+        gl_FragColor = vec4(shadeDiffuseFromEye(), 1.0);
+        return;
+    }
+    if(outputID == 1)
+    {
+        gl_FragColor = vec4(shadePhong(vec3(10, 10, 10)), 1.0);
+        return;
+    }
+    if(outputID == 2)
+    {
+        gl_FragColor = vec4(shadeEnvmapReflection(), 1.0);
+        return;
+    }
+}
+
+vec3 shadeDiffuseFromEye()
+{
+    vec3 n = normalize(normal);
+    vec3 out_vec = normalize(eyePos - vertex);
+    float diffuse = abs(dot(out_vec, n));
+    return vec3(diffuse);
+}
+
