@@ -22,16 +22,20 @@ ParticleManager::ParticleManager(AppConfig &config) :
         config.delta_q
     ) {
 
-    int nx = 5;
+    int nx = 10;
     int ny = 10;
-    int nz = 5;
+    int nz = 10;
 
     float d = particle_radius * 2;
     for (int x = 0; x < nx; ++x) {
         for (int y = 3; y < 3 + ny; ++y) {
             for (int z = 0; z < nz; ++z) {
                 Particle par;
+                float x_offset = (rand() % 1000) / 1000.f * particle_radius / 2;
                 par.p = dvec3((x + 0.5 - nx * 0.5) * d, y * d, (z + 0.5 - nz * 0.5) * d);
+                par.pred_p = glm::dvec3();
+                par.f = glm::dvec3();
+                par.v = glm::dvec3();
                 par.m = PARTICLE_MASS;
                 particles.push_back(par);
             }
@@ -41,7 +45,7 @@ ParticleManager::ParticleManager(AppConfig &config) :
     Plane ground(glm::dvec3(0, 0, 0), glm::dvec3(0, 1, 0), 0);
     Plane side0(glm::dvec3(1, 0, 0), glm::dvec3(1, 0, 0), 0);
     Plane side1(glm::dvec3(0, 0, 1), glm::dvec3(0, 0, 1), 0);
-    Plane side2(glm::dvec3(-2, 0, 0), glm::dvec3(1, 0, 0), 0);
+    Plane side2(glm::dvec3(-1, 0, 0), glm::dvec3(1, 0, 0), 0);
     Plane side3(glm::dvec3(0, 0, -1), glm::dvec3(0, 0, 1), 0);
     Plane side4(glm::dvec3(0, 3, 0), glm::dvec3(0, 1, 0), 0);
     planes.push_back(ground);
@@ -64,7 +68,6 @@ void ParticleManager::render() const {
 
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
-    glEnable(GL_DEPTH_TEST);
     glEnable(GL_COLOR_MATERIAL);
     glColorMaterial(GL_FRONT, GL_DIFFUSE);
     glColor3f(0.2, 0.5, 0.8);
@@ -78,7 +81,6 @@ void ParticleManager::render() const {
         glTranslatef(par.p.x, par.p.y, par.p.z);
         draw_sphere(PARTICLE_RADIUS, 10, 10);
         glPopMatrix();
-//        draw_sphere(par.p, PARTICLE_RADIUS);
     }
     glPopAttrib();
 }
@@ -128,12 +130,12 @@ void ParticleManager::step(float dt) {
         p.f += solver.f_vorticity(&p, p.neighborhood);
         p.v = solver.XSPH_vel(&p, p.neighborhood);
         p.p = p.pred_p;
-        p.f = glm::dvec3(0, 0, 0);
+        p.f = glm::vec3(0, 0, 0);
     }
 }
 
 glm::ivec3 ParticleManager::bin(Particle& p) {
-    double d = KERNEL_RADIUS;
+    double d = KERNEL_RADIUS; // TODO Change d to private var bin_size
     int bin_x = std::floor(p.pred_p.x / d);
     int bin_y = std::floor(p.pred_p.y / d);
     int bin_z = std::floor(p.pred_p.z / d);

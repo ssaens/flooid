@@ -25,6 +25,7 @@ struct Particle {
     float m;           // mass
     float lambda;      // lambda for constraint solution
     float rho;         // pressure constant for particle
+    float w;            // Vorticity
 
     Color color;        // color or particle
 
@@ -40,7 +41,7 @@ struct Particle {
      * Creates a particle with the specified position
      */
     Particle(float x, float y, float z) : p(x, y, z) {}
-    Particle(dvec3 &p) : p(p) {}
+    Particle(vec3 &p) : p(p) {}
 
     /**
      * Constructor

@@ -16,9 +16,7 @@ PBDSolver::PBDSolver() :
     k(PRESSURE_STRENGTH),
     n(PRESSURE_POW),
     dq(DELTA_Q)
-{
-
-}
+{}
 
 PBDSolver::PBDSolver(float rest_density, float h, float eps, float c, float k, float n, vec3 dq) :
         rest_density(rest_density), h(h), eps(eps), c(c), k(k), n(n), dq(dq) {
@@ -88,7 +86,7 @@ vec3 PBDSolver::f_vorticity(Particle *p_i, std::vector<Particle *> &neighborhood
         vec3 p_x = (p_i->m * p_i->pred_p + p_j->m * p_j->pred_p) * (1.f / (p_i->m + p_j->m));
         vec3 eta = p_x - p_i->pred_p;
         vec3 N = normalize(eta);
-        force += this->eps * (cross(N, w)) * rho;
+        force += this->eps * cross(N, w) * rho;
     }
     return force;
 }

@@ -6,6 +6,7 @@
 #define FLOOID_KERNELS_H
 
 #include <glm/glm.hpp>
+#include <math.h>
 
 using namespace std;
 using namespace glm;
@@ -20,10 +21,12 @@ inline float spiky(vec3 r_ij, float h) {
     return 0 <= r && r <= h ? 15 / (M_PI * pow(h, 6)) * pow(h - r, 3) : 0;
 }
 
-inline glm::vec3 spiky_grad(vec3 r_ij, float h) {
+inline vec3 spiky_grad(vec3 r_ij, float h) {
     float r = length(r_ij);
     if (0 < r && r <= h) {
-        return (float) ((45 / (M_PI * pow(h, 6))) * pow(h - r, 2)) * glm::normalize(r_ij);
+        vec3 d = normalize(r_ij);
+        float coeff = 45 / (M_PI * pow(h, 6)) * pow(h - r, 2);
+        return coeff * d;
     } else {
         return vec3();
     }

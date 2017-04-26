@@ -40,6 +40,9 @@ void Application::init() {
         glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
         glHint(GL_POINT_SMOOTH_HINT,GL_NICEST);
 
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+
         // Initialize styles (colors, line widths, etc.) that will be used
         // to draw different types of mesh elements in various situations.
         initialize_style();
@@ -53,15 +56,15 @@ void Application::init() {
     CameraInfo camera_info;
     camera_info.hfov = 50;
     camera_info.vfov = 35;
-    camera_info.n_clip = 0.1f;
-    camera_info.f_clip = 100000;
+    camera_info.n_clip = 1000;
+    camera_info.f_clip = 50000;
     camera.configure(camera_info, screen_w, screen_h);
 
     init_camera(camera_info, mat4x4());
 
     // TODO: REPLACE WITH SCENE CODE
 
-    canonical_view_distance = 10000;
+    canonical_view_distance = 2500;
     double view_distance = canonical_view_distance * 2;
     double min_view_distance = canonical_view_distance / 10.0;
     double max_view_distance = canonical_view_distance * 20.0;

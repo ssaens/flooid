@@ -23,7 +23,7 @@ const float PARTICLE_MASS = 1;
 const float REST_DENSITY = 6378;
 const float VISCOSITY = 0.01;
 
-const float KERNEL_RADIUS = 0.1;
+const float KERNEL_RADIUS = 0.1001;
 const float EPS = 600;
 const float PRESSURE_STRENGTH = 0.1;
 const float PRESSURE_POW = 4;
