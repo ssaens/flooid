@@ -11,7 +11,7 @@ namespace eng {
     public:
         virtual void init() = 0;
         virtual void render() = 0;
-        virtual void update() = 0;
+        virtual void update(float dt) = 0;
 
         virtual void resize(int width, int height) {}
         virtual void keyboard_event(int key, int action, int mods) {}

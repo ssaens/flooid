@@ -23,7 +23,7 @@ public:
 
     virtual void init();
     virtual void render();
-    virtual void update();
+    virtual void update(float dt);
 
     virtual void resize(int width, int height);
     virtual void keyboard_event(int key, int action, int mods);
@@ -38,6 +38,13 @@ private:
     Camera camera;
     Shader shader, solid_shader;
     Mode mode;
+
+    // Hacky Camera Stuff
+    bool keys[1024];
+    float last_x, last_y;
+    bool first_mouse = true;
+
+    void move_camera(float dt);
 };
 
 
