@@ -39,6 +39,9 @@ void Application::init() {
     shader.load("src/shaders/fpscam.vert", "src/shaders/solid_cam.frag");
     solid_shader.load("src/shaders/basic.vert", "src/shaders/basic.frag");
     mode = MODE_EDIT;
+
+    last_x = screen_w / 2;
+    last_y = screen_h / 2;
 }
 
 void Application::render() {
@@ -57,8 +60,8 @@ void Application::render() {
     glBindVertexArray(0);
 }
 
-void Application::update() {
-
+void Application::update(float dt) {
+    move_camera(dt);
 }
 
 void Application::resize(int width, int height) {
@@ -66,33 +69,34 @@ void Application::resize(int width, int height) {
 }
 
 void Application::keyboard_event(int key, int action, int mods) {
-    switch(key) {
-        case GLFW_KEY_E: {
-            if (mode == MODE_EDIT) {
-                mode = MODE_VIEW;
-            } else {
-                mode = MODE_EDIT;
-            }
+    if (key == GLFW_KEY_C) {
+        if (mode == MODE_EDIT) {
+            mode = MODE_VIEW;
+        } else {
+            mode = MODE_EDIT;
         }
-        case GLFW_KEY_W:
-            camera.keyboard_event(FORWARD, 0.01);
-            break;
-        case GLFW_KEY_A:
-            camera.keyboard_event(LEFT, 0.01);
-            break;
-        case GLFW_KEY_D:
-            camera.keyboard_event(RIGHT, 0.01);
-            break;
-        case GLFW_KEY_S:
-            camera.keyboard_event(BACKWARD, 0.01);
-            break;
-        default:
-            break;
+    }
+    if (key >= 0 && key < 1024) {
+        if (action == GLFW_PRESS) {
+            keys[key] = true;
+        } else if (action == GLFW_RELEASE) {
+            keys[key] = false;
+        }
     }
 }
 
 void Application::cursor_event(double cursor_x, double cursor_y) {
-//    camera.cursor_event(cursor_x - screen_w / 2, cursor_y - screen_h / 2);
+    if (first_mouse) {
+        last_x = cursor_x;
+        last_y = cursor_y;
+        first_mouse = false;
+    }
+    GLfloat xoffset = cursor_x - last_x;
+    GLfloat yoffset = last_y - cursor_y;
+
+    last_x = cursor_x;
+    last_y = cursor_y;
+    camera.cursor_event(xoffset, yoffset);
 }
 
 void Application::scroll_event(double offset_x, double offset_y) {
@@ -101,4 +105,19 @@ void Application::scroll_event(double offset_x, double offset_y) {
 
 void Application::mouse_event(int button, int action, int mods) {
 
+}
+
+void Application::move_camera(float dt) {
+    if (keys[GLFW_KEY_W]) {
+        camera.keyboard_event(FORWARD, dt);
+    }
+    if (keys[GLFW_KEY_S]) {
+        camera.keyboard_event(BACKWARD, dt);
+    }
+    if (keys[GLFW_KEY_A]) {
+        camera.keyboard_event(LEFT, dt);
+    }
+    if (keys[GLFW_KEY_D]) {
+        camera.keyboard_event(RIGHT, dt);
+    }
 }

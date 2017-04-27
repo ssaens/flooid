@@ -17,8 +17,8 @@ namespace eng {
     Renderer *View::renderer = nullptr;
 
     int View::framecount = 0;
-    chrono::time_point<chrono::system_clock> View::sys_last;
-    chrono::time_point<chrono::system_clock> View::sys_curr;
+    float View::sys_last;
+    float View::sys_curr;
 
     string View::title = "";
     bool View::HDPI = false;
@@ -50,6 +50,8 @@ namespace eng {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_SAMPLES, 4);
+
         string title = this->renderer->name();
         this->window = glfwCreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT, title.c_str(), NULL, NULL);
         if (!this->window) {
@@ -67,6 +69,8 @@ namespace eng {
         glfwSetScrollCallback(this->window, this->scroll_callback);
         glfwSetInputMode(this->window, GLFW_STICKY_MOUSE_BUTTONS, 1);
         glfwSetMouseButtonCallback(this->window, this->mouse_button_callback);
+
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         glewExperimental = GL_TRUE;
         if (glewInit() != GLEW_OK) {
@@ -89,17 +93,18 @@ namespace eng {
     }
 
     void View::begin() {
-        sys_curr = chrono::system_clock::now();
-        chrono::duration<double, std::milli> elapsed = sys_curr - sys_last;
         while (!glfwWindowShouldClose(window)) {
-            update(elapsed.count());
-            renderer->update();
+            sys_curr = glfwGetTime();
+            float dt = sys_curr - sys_last;
+            update(dt);
+            sys_last = sys_curr;
         }
-        sys_last = sys_curr;
     }
 
     void View::update(double dt) {
         glfwPollEvents();
+
+        renderer->update(dt);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderer->render();
@@ -120,7 +125,6 @@ namespace eng {
             case GLFW_PRESS:
                 if (key == GLFW_KEY_ESCAPE) {
                     glfwSetWindowShouldClose(window, GL_TRUE);
-                    cout << "PRESS" << endl;
                 }
                 break;
             default:

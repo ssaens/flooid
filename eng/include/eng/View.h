@@ -33,8 +33,8 @@ namespace eng {
         static bool HDPI;
 
         static int framecount;
-        static std::chrono::time_point<std::chrono::system_clock> sys_last;
-        static std::chrono::time_point<std::chrono::system_clock> sys_curr;
+        static float sys_last;
+        static float sys_curr;
 
 
     public:
