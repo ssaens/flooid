@@ -7,6 +7,7 @@
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
+#include <vector>
 
 using namespace glm;
 
@@ -17,6 +18,7 @@ struct Particle {
     vec3 vel;
     vec3 f;
 
+    GLfloat m;
     GLfloat rho;
     GLfloat lambda;
 

@@ -4,8 +4,9 @@
 
 #include "ParticleManager.h"
 
+using namespace glm;
+
 ParticleManager::ParticleManager() :
-    dt(DELTA_T)
 {
 
 }
