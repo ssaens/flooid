@@ -19,7 +19,7 @@ PBDSolver::PBDSolver() :
         dq(DELTA_Q)
 {}
 
-static PBDSolver *PBDSolver::getPBDsolver() {
+PBDSolver *PBDSolver::getPBDsolver() {
     return &self;
 }
 
@@ -72,7 +72,7 @@ vec3 PBDSolver::delta_p(Particle *p_i, std::vector<Particle *> &neighborhood) {
 vec3 PBDSolver::vorticity(Particle *p_i, std::vector<Particle *> &neighborhood) {
     vec3 w;
     for (Particle *p_j : neighborhood) {
-        vec3 v_ij = p_j->vel - p_i->vel;
+        vec3 v_ij = p_j->v - p_i->v;
         w += cross(v_ij, spiky_grad(p_i->pred_p - p_j->pred_p, this->h));
     }
     return w;
@@ -94,8 +94,8 @@ vec3 PBDSolver::f_vorticity(Particle *p_i, std::vector<Particle *> &neighborhood
 vec3 PBDSolver::XSPH_vel(Particle *p_i, std::vector<Particle *> &neighborhood) {
     vec3 v;
     for (Particle *p_j : neighborhood) {
-        vec3 v_ij = p_j->vel - p_i->vel;
-        v += v_ij * poly6(p_i->vel - p_j->vel, this->h);
+        vec3 v_ij = p_j->v - p_i->v;
+        v += v_ij * poly6(p_i->v - p_j->v, this->h);
     }
-    return p_i->vel + this->c * v;
+    return p_i->v + this->c * v;
 }

@@ -15,14 +15,14 @@ struct Particle {
     vec3 p;
     vec3 pred_p;
     vec3 dp;
-    vec3 vel;
+    vec3 v;
     vec3 f;
 
     GLfloat m;
     GLfloat rho;
     GLfloat lambda;
 
-    std::vector<struct Particle *> neighbors;
+    std::vector<struct Particle *> neighborhood;
 };
 
 #endif //FLOOID2_PARTICLE_H

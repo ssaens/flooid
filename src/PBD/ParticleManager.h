@@ -23,6 +23,7 @@ private:
     ivec3 bin(Particle &p);
     int hash_bin(glm::ivec3 pos);
     std::vector<Particle *> neighborhood(Particle& p);
+    std::vector<glm::vec3> accels;
 
     std::map<int, std::vector<Particle *> *> spacial_map;
 
