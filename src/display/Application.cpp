@@ -120,4 +120,10 @@ void Application::move_camera(float dt) {
     if (keys[GLFW_KEY_D]) {
         camera.keyboard_event(RIGHT, dt);
     }
+    if (keys[GLFW_KEY_SPACE]) {
+        camera.keyboard_event(UP, dt);
+    }
+    if (keys[GLFW_KEY_LEFT_SHIFT]) {
+        camera.keyboard_event(DOWN, dt);
+    }
 }

@@ -22,7 +22,9 @@ enum Camera_Movement {
     FORWARD,
     BACKWARD,
     LEFT,
-    RIGHT
+    RIGHT,
+    UP,
+    DOWN,
 };
 
 // Default camera values
@@ -99,7 +101,7 @@ public:
         return glm::lookAt(this->pos, this->pos + this->front, this->up);
     }
 
-    // Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
+    // Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined      ENUM (to abstract it from windowing systems)
     void keyboard_event(Camera_Movement direction, GLfloat deltaTime) {
         GLfloat velocity = this->movement_speed * deltaTime;
         if (direction == FORWARD)
@@ -110,6 +112,10 @@ public:
             this->pos -= this->right * velocity;
         if (direction == RIGHT)
             this->pos += this->right * velocity;
+        if (direction == UP)
+            this->pos += this->up * velocity;
+        if (direction == DOWN)
+            this->pos -= this->up * velocity;
     }
 
     // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
@@ -145,8 +151,7 @@ public:
 
 private:
     // Calculates the front vector from the Camera's (updated) Euler Angles
-    void update_vectors()
-    {
+    void update_vectors() {
         // Calculate the new Front vector
         glm::vec3 front;
         front.x = cos(glm::radians(this->yaw)) * cos(glm::radians(this->pitch));
@@ -154,7 +159,7 @@ private:
         front.z = sin(glm::radians(this->yaw)) * cos(glm::radians(this->pitch));
         this->front = glm::normalize(front);
         // Also re-calculate the Right and Up vector
-        this->right = glm::normalize(glm::cross(this->front, this->world_up));  // Normalize the vectors, because their     length gets closer to 0 the more you look up or down which results in slower movement.
+        this->right = glm::normalize(glm::cross(this->front, this->world_up));  // Normalize the vectors, because their             length gets closer to 0 the more you look up or down which results in slower movement.
         this->up    = glm::normalize(glm::cross(this->right, this->front));
     }
 };
