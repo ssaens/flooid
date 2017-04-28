@@ -41,9 +41,10 @@ public:
     vector<Texture> textures;
 
     /*  Functions  */
-    Mesh(vector<Vertex> &vertices, vector<GLuint> &indices, vector<Texture> &textures);
+    Mesh() {}
+    Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures);
 
-    void render(Shader &shader);
+    void render(const Shader &shader) const;
 };
 
 

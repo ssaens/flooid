@@ -6,30 +6,21 @@
 #define FLOOID_SCENE_H
 
 #include <assimp/scene.h>
-#include "../model/Mesh.h"
+#include "Model.h"
 
 using namespace std;
 
-GLint texture_from_file(const char* path, string directory);
-
 class Scene {
 private:
-    vector<Mesh> meshes;
-    string dir;
-
-    void process_node(aiNode *node, const aiScene *scene);
-    Mesh process_mesh(aiMesh *mesh, const aiScene *scene);
-    vector<Texture> load_material_texture(aiMaterial* mat, aiTextureType type,
-                                         string typeName);
-    vector<Texture> textures_loaded;
+    Model model;
+    // Light light;
+    std::vector particle_positions;
 
 public:
 
-    Scene() {}
-    void load_scene(string path);
-    void draw(Shader &shader);
-    void draw();
-
+    Scene();
+    void load(std::string path);
+//    void save(std::string path);
 };
 
 

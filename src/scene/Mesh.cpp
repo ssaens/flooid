@@ -4,7 +4,7 @@
 
 #include "Mesh.h"
 
-Mesh::Mesh(vector<Vertex> &vertices, vector<GLuint> &indices, vector<Texture> &textures) {
+Mesh::Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures) {
     this->vertices = vertices;
     this->indices = indices;
     this->textures = textures;
@@ -42,7 +42,7 @@ void Mesh::init() {
     glBindVertexArray(0);
 }
 
-void Mesh::render(Shader &shader) {
+void Mesh::render(const Shader &shader) const {
     GLuint diffuseNr = 1;
     GLuint specularNr = 1;
     for(GLuint i = 0; i < this->textures.size(); i++)
