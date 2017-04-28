@@ -7,7 +7,8 @@
 
 #include <eng/eng.h>
 #include "Camera.h"
-#include "../model/Shader.h"
+#include "../scene/Shader.h"
+#include "../scene/Mesh.h"
 
 using namespace eng;
 
@@ -35,6 +36,7 @@ public:
 
 private:
     GLuint VAO, VBO;
+    Mesh sphere;
     Camera camera;
     Shader shader, solid_shader;
     Mode mode;
@@ -42,7 +44,7 @@ private:
     // Hacky Camera Stuff
     bool keys[1024];
     float last_x, last_y;
-    bool first_mouse = true;
+    bool first_mouse;
 
     void move_camera(float dt);
 };

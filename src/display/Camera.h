@@ -28,15 +28,20 @@ enum Camera_Movement {
 };
 
 // Default camera values
-const GLfloat YAW        = -90.0f;
-const GLfloat PITCH      =  0.0f;
-const GLfloat SPEED      =  3.0f;
-const GLfloat SENSITIVTY =  0.1f;
-const GLfloat ZOOM       =  45.0f;
-const GLfloat NCLIP      =  0.1f;
-const GLfloat FCLIP      =  100.f;
-const GLfloat VDIST      =  10.f;
+const float YAW        = -90.0f;
+const float PITCH      =  0.0f;
+const float SPEED      =  3.0f;
+const float SENSITIVTY =  0.1f;
+const float ZOOM       =  M_PI / 4;
+const float MIN_ZOOM   =  glm::radians(20.f);
+const float MAX_ZOOM   =  ZOOM;
+const float NCLIP      =  0.1f;
+const float FCLIP      =  100.f;
+const float VDIST      =  10.f;
 
+const glm::vec3 DEFAULT_POS = glm::vec3(0.f, 0.f, 0.f);
+const glm::vec3 DEFAULT_UP = glm::vec3(0.f, 1.f, 0.f);
+const glm::vec3 DEFAULT_FRONT = glm::vec3(0.f, 0.f, -1.f);
 
 class Camera {
 public:
@@ -46,48 +51,54 @@ public:
     glm::vec3 up;
     glm::vec3 right;
     glm::vec3 world_up;
+
     // Eular Angles
-    GLfloat yaw;
-    GLfloat pitch;
+    float yaw;
+    float pitch;
     // Camera options
-    GLfloat movement_speed;
-    GLfloat mouse_sensitivity;
-    GLfloat zoom;
-    GLfloat n_clip, f_clip;
-    GLfloat view_dist;
+    float movement_speed;
+    float mouse_sensitivity;
+    float zoom;
+    float min_zoom, max_zoom;
+    float n_clip, f_clip;
+    float view_dist;
 
     // Constructor with vectors
     Camera(
-            glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
-            GLfloat yaw = YAW,
-            GLfloat pitch = PITCH) :
-            front(glm::vec3(0.0f, 0.0f, -1.0f)),
+            glm::vec3 position = DEFAULT_POS,
+            glm::vec3 up = DEFAULT_UP,
+            float yaw = YAW,
+            float pitch = PITCH) :
+            pos(position),
+            world_up(up),
+            yaw(yaw),
+            pitch(pitch),
+            front(DEFAULT_FRONT),
             movement_speed(SPEED),
             mouse_sensitivity(SENSITIVTY),
             zoom(ZOOM),
             n_clip(NCLIP),
             f_clip(FCLIP),
-            view_dist(VDIST)
+            view_dist(VDIST),
+            min_zoom(MIN_ZOOM),
+            max_zoom(MAX_ZOOM)
     {
-        this->pos = position;
-        this->world_up = up;
-        this->yaw = yaw;
-        this->pitch = pitch;
         this->update_vectors();
     }
 
     // Constructor with scalar values
-    Camera(GLfloat posX, GLfloat posY, GLfloat posZ,
-           GLfloat upX, GLfloat upY, GLfloat upZ,
-           GLfloat yaw, GLfloat pitch) :
-            front(glm::vec3(0.0f, 0.0f, -1.0f)),
+    Camera(float posX, float posY, float posZ,
+           float upX, float upY, float upZ,
+           float yaw, float pitch) :
+            front(DEFAULT_FRONT),
             movement_speed(SPEED),
             mouse_sensitivity(SENSITIVTY),
             zoom(ZOOM),
             n_clip(NCLIP),
             f_clip(FCLIP),
-            view_dist(VDIST)
+            view_dist(VDIST),
+            min_zoom(MIN_ZOOM),
+            max_zoom(MAX_ZOOM)
     {
         this->pos = glm::vec3(posX, posY, posZ);
         this->world_up = glm::vec3(upX, upY, upZ);
@@ -102,8 +113,8 @@ public:
     }
 
     // Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined      ENUM (to abstract it from windowing systems)
-    void keyboard_event(Camera_Movement direction, GLfloat deltaTime) {
-        GLfloat velocity = this->movement_speed * deltaTime;
+    void keyboard_event(Camera_Movement direction, float deltaTime) {
+        float velocity = this->movement_speed * deltaTime;
         if (direction == FORWARD)
             this->pos += this->front * velocity;
         if (direction == BACKWARD)
@@ -119,7 +130,7 @@ public:
     }
 
     // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
-    void cursor_event(GLfloat xoffset, GLfloat yoffset, GLboolean constrainPitch = true) {
+    void cursor_event(float xoffset, float yoffset, GLboolean constrainPitch = true) {
         xoffset *= this->mouse_sensitivity;
         yoffset *= this->mouse_sensitivity;
 
@@ -134,19 +145,18 @@ public:
             if (this->pitch < -89.0f)
                 this->pitch = -89.0f;
         }
-        std::cout << xoffset << " " << yoffset << " " << this->yaw << " " << this->pitch << "\r";
         // Update Front, Right and Up Vectors using the updated Euler angles
         this->update_vectors();
     }
 
     // Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
-    void scroll_event(GLfloat yoffset) {
-        if (this->zoom >= 1.0f && this->zoom <= 45.0f)
+    void scroll_event(float yoffset) {
+        if (this->zoom >= min_zoom && this->zoom <= max_zoom)
             this->zoom -= yoffset;
-        if (this->zoom <= 1.0f)
-            this->zoom = 1.0f;
-        if (this->zoom >= 45.0f)
-            this->zoom = 45.0f;
+        if (this->zoom <= min_zoom)
+            this->zoom = min_zoom;
+        if (this->zoom >= max_zoom)
+            this->zoom = max_zoom;
     }
 
 private:

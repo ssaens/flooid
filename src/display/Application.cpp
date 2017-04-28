@@ -3,9 +3,10 @@
 //
 
 #include "Application.h"
+#include "../util.h"
 #include <glm/gtc/type_ptr.hpp>
 
-Application::Application() : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
+Application::Application() {}
 
 Application::~Application() {
     glDeleteVertexArrays(1, &VAO);
@@ -13,35 +14,41 @@ Application::~Application() {
 }
 
 void Application::init() {
+    
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_CULL_FACE);
 
-    GLfloat vertices[] = {
-            -0.5f, -0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f,
-            0.0f,  0.5f, 0.0f
-    };
+//    GLfloat vertices[] = {
+//            -0.5f, -0.5f, 0.0f,
+//            0.5f, -0.5f, 0.0f,
+//            0.0f,  0.5f, 0.0f
+//    };
+//
+//    glGenVertexArrays(1, &VAO);
+//    glGenBuffers(1, &VBO);
+//    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+//    glBindVertexArray(VAO);
+//
+//    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+//    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+//
+//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+//    glEnableVertexAttribArray(0);
+//
+//    glBindBuffer(GL_ARRAY_BUFFER, 0);
+//
+//    glBindVertexArray(0);
 
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
-    glBindVertexArray(VAO);
+    sphere = generate_sphere_mesh(1, 10, 10);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glBindVertexArray(0);
-
-    shader.load("src/shaders/fpscam.vert", "src/shaders/solid_cam.frag");
-    solid_shader.load("src/shaders/basic.vert", "src/shaders/basic.frag");
+    shader.load("src/shaders/fpscam.vert", "src/shaders/basic.frag");
+//    solid_shader.load("src/shaders/basic.vert", "src/shaders/basic.frag");
     mode = MODE_EDIT;
 
     last_x = screen_w / 2;
     last_y = screen_h / 2;
+    first_mouse = true;
 }
 
 void Application::render() {
@@ -55,9 +62,11 @@ void Application::render() {
     glUniformMatrix4fv(glGetUniformLocation(shader.program, "view"), 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glBindVertexArray(0);
+//    glBindVertexArray(VAO);
+//    glDrawArrays(GL_TRIANGLES, 0, 3);
+//    glBindVertexArray(0);
+//    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    sphere.render(shader);
 }
 
 void Application::update(float dt) {

@@ -3,11 +3,12 @@ cmake_minimum_required(VERSION 3.6)
 # flooid source
 set(FLOOID2_SOURCE
         main.cpp
+        util.cpp
 
         display/Application.cpp
 
-        model/Mesh.cpp
-        model/Model.cpp
+        scene/Mesh.cpp
+        scene/Model.cpp
 
         PBD/ParticleManager.cpp
         PBD/PBDSolver.cpp
@@ -18,12 +19,15 @@ set(FLOOID2_SOURCE
 # flooid header
 set(FLOOID2_HEADER
 
+        common.h
+        util.h
+
         display/Application.h
         display/Camera.h
 
-        model/Shader.h
-        model/Mesh.h
-        model/Model.h
+        scene/Shader.h
+        scene/Mesh.h
+        scene/Model.h
 
         PBD/Particle.h
         PBD/ParticleManager.h
