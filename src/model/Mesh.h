@@ -10,6 +10,7 @@
 #include <vector>
 #include <string>
 #include "Shader.h"
+#include <assimp/scene.h>
 
 using namespace std;
 
@@ -22,6 +23,7 @@ struct Vertex {
 struct Texture {
     GLuint id;
     string type;
+    aiString path;
 };
 
 

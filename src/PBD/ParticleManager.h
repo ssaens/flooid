@@ -11,24 +11,33 @@
 #include "Particle.h"
 #include "../common.h"
 #include "../model/Shader.h"
+#include <map>
+#include "PBDSolver.h"
+#include "../scene/Plane.h"
 
 using namespace glm;
 
 class ParticleManager {
 private:
     std::vector<Particle> particles;
-    std::vector<vec3> particle_positions;
+    ivec3 bin(Particle &p);
+    int hash_bin(glm::ivec3 pos);
+    std::vector<Particle *> neighborhood(Particle& p);
+    std::vector<glm::vec3> accels;
 
-    Shader particle_shader;
+    std::map<int, std::vector<Particle *> *> spacial_map;
 
-    float dt;
+    int solver_iters;
+    float particle_radius;
+    float particle_mass;
+
+    std::vector<Plane> planes;
 
 public:
     ParticleManager();
-    ~ParticleManager();
-
-    void render();
-    void step();
+    ~ParticleManager() { spacial_map.clear(); }
+    void render() const;
+    void step(float dt);
 };
 
 

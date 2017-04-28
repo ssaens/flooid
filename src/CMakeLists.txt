@@ -10,7 +10,10 @@ set(FLOOID2_SOURCE
         model/Model.cpp
 
         PBD/ParticleManager.cpp
-        PBD/PBDSolver.cpp)
+        PBD/PBDSolver.cpp
+
+        scene/Scene.cpp
+        scene/Plane.cpp)
 
 # flooid header
 set(FLOOID2_HEADER
@@ -24,7 +27,11 @@ set(FLOOID2_HEADER
 
         PBD/Particle.h
         PBD/ParticleManager.h
-        PBD/PBDSolver.h)
+        PBD/PBDSolver.h
+        PBD/kernels.h
+
+        scene/Scene.h
+        scene/Plane.h)
 
 
 #-------------------------------------------------------------------------------
