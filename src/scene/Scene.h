@@ -14,7 +14,7 @@ class Scene {
 private:
     Model model;
     // Light light;
-    std::vector particle_positions;
+    std::vector<glm::vec3> particle_positions;
 
 public:
 

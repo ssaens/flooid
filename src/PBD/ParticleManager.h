@@ -24,6 +24,8 @@ private:
     Shader particle_shader;
 
     std::vector<Particle> particles;
+    std::vector<glm::vec3> particle_positions;
+
     ivec3 bin(Particle &p);
     int hash_bin(glm::ivec3 pos);
     std::vector<Particle *> neighborhood(Particle& p);

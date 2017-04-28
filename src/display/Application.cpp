@@ -19,31 +19,10 @@ void Application::init() {
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
 
-//    GLfloat vertices[] = {
-//            -0.5f, -0.5f, 0.0f,
-//            0.5f, -0.5f, 0.0f,
-//            0.0f,  0.5f, 0.0f
-//    };
-//
-//    glGenVertexArrays(1, &VAO);
-//    glGenBuffers(1, &VBO);
-//    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
-//    glBindVertexArray(VAO);
-//
-//    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-//    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-//
-//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-//    glEnableVertexAttribArray(0);
-//
-//    glBindBuffer(GL_ARRAY_BUFFER, 0);
-//
-//    glBindVertexArray(0);
-
     sphere = generate_sphere_mesh(1, 10, 10);
 
-    shader.load("src/shaders/fpscam.vert", "src/shaders/basic.frag");
-//    solid_shader.load("src/shaders/basic.vert", "src/shaders/basic.frag");
+    shader.load("src/shaders/particle.vert", "src/shaders/particle.frag");
+    solid_shader.load("src/shaders/particle.vert", "src/shaders/particle_outline.frag");
     mode = MODE_EDIT;
 
     last_x = screen_w / 2;
@@ -57,15 +36,21 @@ void Application::render() {
     glm::mat4 view = camera.get_view_matrix();
     glm::mat4 model;
 
+    glm::vec3 lightPos(5, 5, 5);
+    glm::vec3 lightColor(1, 1, 1);
+    GLint lightPosLoc = glGetUniformLocation(shader.program, "light_pos");
+    glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
+    GLint lightColorLoc = glGetUniformLocation(shader.program, "light_color");
+    glUniform3f(lightColorLoc, lightColor.r, lightColor.g, lightColor.b);
+
     // Get their uniform location
     glUniformMatrix4fv(glGetUniformLocation(shader.program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
     glUniformMatrix4fv(glGetUniformLocation(shader.program, "view"), 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
-//    glBindVertexArray(VAO);
-//    glDrawArrays(GL_TRIANGLES, 0, 3);
-//    glBindVertexArray(0);
-//    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glBindVertexArray(0);
     sphere.render(shader);
 }
 
