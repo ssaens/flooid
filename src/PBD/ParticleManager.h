@@ -10,15 +10,19 @@
 #include <glm/glm.hpp>
 #include "Particle.h"
 #include "../common.h"
-#include "../model/Shader.h"
+#include "../scene/Shader.h"
 #include <map>
 #include "PBDSolver.h"
 #include "../scene/Plane.h"
+#include "../scene/Mesh.h"
 
 using namespace glm;
 
 class ParticleManager {
 private:
+    Mesh particle_mesh;
+    Shader particle_shader;
+
     std::vector<Particle> particles;
     ivec3 bin(Particle &p);
     int hash_bin(glm::ivec3 pos);

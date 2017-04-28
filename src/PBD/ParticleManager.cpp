@@ -3,7 +3,7 @@
 //
 
 #include "ParticleManager.h"
-//#include "../util.h"
+#include "../util.h"
 
 using namespace glm;
 
@@ -40,35 +40,13 @@ ParticleManager::ParticleManager() {
     planes.push_back(side2);
     planes.push_back(side3);
     planes.push_back(side4);
+
+    particle_mesh = generate_sphere_mesh(PARTICLE_RADIUS * 0.09f, 10, 10);
+    particle_shader.load("src/shaders/fpscam.vert", "src/shaders/fpscam.frag");
 }
 
 void ParticleManager::render() const {
-    GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-    GLfloat mat_shininess[] = { 50.0 };
-    GLfloat light_position[] = { 10.0, 10.0, 10.0, 0.0 };
-    glShadeModel(GL_SMOOTH);
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glEnable(GL_COLOR_MATERIAL);
-    glColorMaterial(GL_FRONT, GL_DIFFUSE);
-    glColor3f(0.2, 0.5, 0.8);
-    glColorMaterial(GL_FRONT, GL_SPECULAR);
-    glColor3f(0.9, 0.9, 0.9);
-    glColorMaterial(GL_FRONT, GL_AMBIENT);
-    glColor3f(0.2, 0.5, 0.8);
-
-    for (const Particle &par : particles) {
-        glPushMatrix();
-        glTranslatef(par.p.x, par.p.y, par.p.z);
-        draw_sphere(particle_radius * 0.9, 10, 10);
-        glPopMatrix();
-    }
-    glPopAttrib();
+    particle_mesh.render(particle_shader);
 }
 
 void ParticleManager::step(float dt) {

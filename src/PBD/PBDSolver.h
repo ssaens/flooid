@@ -5,7 +5,7 @@
 #ifndef FLOOID2_PBDSOLVER_H
 #define FLOOID2_PBDSOLVER_H
 
-#include "particle.h"
+#include "Particle.h"
 
 class PBDSolver {
 private:
@@ -16,9 +16,10 @@ private:
     float k;
     float n;
     vec3 dq;
-    static PBDSolver self;
 
+    static PBDSolver self;
     PBDSolver();
+
     float rho_i(Particle *p_i, std::vector<Particle *> &neighborhood);
     float C_i(Particle *p_i, std::vector<Particle *> &neighborhood);
     glm::vec3 grad_k_Ci(Particle *p_k, Particle *p_i, std::vector<Particle *> &neighborhood);
