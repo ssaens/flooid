@@ -21,9 +21,9 @@ ParticleManager::ParticleManager(AppConfig &config) :
         config.delta_q
     ) {
 
-    int nx = 10;
-    int ny = 10;
-    int nz = 10;
+    int nx = 20;
+    int ny = 25;
+    int nz = 20;
 
     float d = particle_radius * 2;
     for (int x = 0; x < nx; ++x) {
