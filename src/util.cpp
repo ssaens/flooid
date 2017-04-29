@@ -11,7 +11,6 @@ Mesh generate_sphere_mesh(float radius, unsigned int lats, unsigned int longs) {
     std::vector<Vertex> vertices;
     std::vector<Texture> textures;
     std::vector<GLuint> indices;
-    int i = 0;
     for (int r = 0; r < lats; ++r) {
         for (int s = 0; s < longs; ++s) {
             float theta = M_PI * r * R;

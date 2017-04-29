@@ -29,7 +29,7 @@ enum Camera_Movement {
 
 // Default camera values
 const float YAW        = -90.0f;
-const float PITCH      =  0.0f;
+const float PITCH      =  -20.0f;
 const float SPEED      =  3.0f;
 const float SENSITIVTY =  0.1f;
 const float ZOOM       =  M_PI / 4;
@@ -39,7 +39,7 @@ const float NCLIP      =  0.1f;
 const float FCLIP      =  100.f;
 const float VDIST      =  10.f;
 
-const glm::vec3 DEFAULT_POS = glm::vec3(0.f, 0.f, 0.f);
+const glm::vec3 DEFAULT_POS = glm::vec3(0.f, 1.5f, 3.f);
 const glm::vec3 DEFAULT_UP = glm::vec3(0.f, 1.f, 0.f);
 const glm::vec3 DEFAULT_FRONT = glm::vec3(0.f, 0.f, -1.f);
 

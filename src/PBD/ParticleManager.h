@@ -34,7 +34,6 @@ private:
 
     std::map<int, std::vector<Particle *> *> spacial_map;
 
-    int solver_iters;
     float particle_radius;
 
     std::vector<Plane> planes;

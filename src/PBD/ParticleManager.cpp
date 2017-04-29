@@ -96,7 +96,7 @@ void ParticleManager::step(float dt) {
         p.neighborhood = this->neighborhood(p);
     }
 
-    for (int i = 0; i < solver_iters; ++i) {
+    for (int i = 0; i < SOLVER_ITERS; ++i) {
         for (Particle &p_i : particles) {
             float lambda = PBDSolver::getPBDsolver()->lambda_i(&p_i, p_i.neighborhood);
             p_i.lambda = lambda;

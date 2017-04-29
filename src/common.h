@@ -10,10 +10,11 @@
 const float DELTA_T = 0.0083;
 const glm::vec3 ACCEL_GRAVITY(0, -9.8f, 0);
 
+const int SOLVER_ITERS = 4;
 const float PARTICLE_RADIUS = 0.05;
 const float PARTICLE_MASS = 1;
 
-const float KERNEL_RADIUS = 0.01;
+const float KERNEL_RADIUS = 0.1001;
 const float REST_DENSITY = 6378;
 const float EPS_T = 600;
 

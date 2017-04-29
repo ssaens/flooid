@@ -20,7 +20,6 @@ void Plane::collide(Particle& p) {
         p.pred_p = proj_point;
         p.v = glm::vec3();
     }
-
 }
 
 void Plane::render() {
