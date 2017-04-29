@@ -7,7 +7,10 @@
 
 using namespace glm;
 
-ParticleManager::ParticleManager() {
+ParticleManager::ParticleManager() {}
+
+void ParticleManager::init() {
+    particle_radius = PARTICLE_RADIUS;
     accels.push_back(ACCEL_GRAVITY);
     int nx = 10;
     int ny = 10;
@@ -24,6 +27,7 @@ ParticleManager::ParticleManager() {
                 par.v = glm::dvec3();
                 par.m = PARTICLE_MASS;
                 particles.push_back(par);
+                particle_positions.push_back(par.p);
             }
         }
     }
@@ -41,15 +45,33 @@ ParticleManager::ParticleManager() {
     planes.push_back(side3);
     planes.push_back(side4);
 
-    particle_mesh = generate_sphere_mesh(PARTICLE_RADIUS * 0.09f, 10, 10);
-    particle_shader.load("src/shaders/fpscam.vert", "src/shaders/fpscam.frag");
+    particle_mesh = generate_sphere_mesh(PARTICLE_RADIUS * 0.9f, 10, 10);
+
+    glGenBuffers(1, &instanceVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * particles.size(), NULL, GL_STREAM_DRAW);
+
+    glBindVertexArray(particle_mesh.VAO);
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid *) 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glVertexAttribDivisor(3, 1);
+    glBindVertexArray(0);
 }
 
-void ParticleManager::render() const {
-    particle_mesh.render(particle_shader);
+void ParticleManager::render() {
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * particles.size(), NULL, GL_STREAM_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, particles.size() * sizeof(glm::vec3), &particle_positions[0]);
+
+    particle_shader.use();
+    glBindVertexArray(particle_mesh.VAO);
+    glDrawElementsInstanced(GL_TRIANGLES, particle_mesh.indices.size(), GL_UNSIGNED_INT, 0, particles.size());
+    glBindVertexArray(0);
 }
 
 void ParticleManager::step(float dt) {
+    dt = DELTA_T;
     for (Particle &p : particles) {
         for (auto accel : accels) {
             p.f += accel * p.m;
@@ -89,12 +111,14 @@ void ParticleManager::step(float dt) {
         }
     }
 
-    for (Particle& p : particles) {
+    for (int i = 0; i < particles.size(); ++i) {
+        Particle &p = particles[i];
         p.v = (1.f / dt) * (p.pred_p - p.p);
         p.f += PBDSolver::getPBDsolver()->f_vorticity(&p, p.neighborhood);
         p.v = PBDSolver::getPBDsolver()->XSPH_vel(&p, p.neighborhood);
         p.p = p.pred_p;
         p.f = glm::vec3(0, 0, 0);
+        particle_positions[i] = p.p;
     }
 }
 
@@ -130,4 +154,8 @@ std::vector<Particle *> ParticleManager::neighborhood(Particle& p) {
         }
     }
     return neighbors;
+}
+
+void ParticleManager::set_shader(Shader &shader) {
+    particle_shader = shader;
 }

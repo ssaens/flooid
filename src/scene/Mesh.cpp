@@ -42,7 +42,7 @@ void Mesh::init() {
     glBindVertexArray(0);
 }
 
-void Mesh::render(const Shader &shader) const {
+void Mesh::render(Shader &shader) {
     GLuint diffuseNr = 1;
     GLuint specularNr = 1;
     for(GLuint i = 0; i < this->textures.size(); i++)

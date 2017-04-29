@@ -29,12 +29,13 @@ struct Texture {
 
 class Mesh {
 private:
-    /*  Render data  */
-    GLuint VAO, VBO, EBO;
     /*  Functions    */
     void init();
 
 public:
+    /*  Render data  */
+    GLuint VAO, VBO, EBO;
+
     /*  Mesh Data  */
     vector<Vertex> vertices;
     vector<GLuint> indices;
@@ -44,7 +45,7 @@ public:
     Mesh() {}
     Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures);
 
-    void render(const Shader &shader) const;
+    void render(Shader &shader);
 };
 
 

@@ -34,6 +34,7 @@ set(FLOOID2_HEADER
         PBD/PBDSolver.h
         PBD/kernels.h
 
+        scene/Light.h
         scene/Scene.h
         scene/Plane.h)
 

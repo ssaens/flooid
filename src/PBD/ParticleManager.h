@@ -25,6 +25,7 @@ private:
 
     std::vector<Particle> particles;
     std::vector<glm::vec3> particle_positions;
+    GLuint instanceVBO;
 
     ivec3 bin(Particle &p);
     int hash_bin(glm::ivec3 pos);
@@ -35,15 +36,16 @@ private:
 
     int solver_iters;
     float particle_radius;
-    float particle_mass;
 
     std::vector<Plane> planes;
 
 public:
     ParticleManager();
     ~ParticleManager() { spacial_map.clear(); }
-    void render() const;
+    void init();
+    void render();
     void step(float dt);
+    void set_shader(Shader &shader);
 };
 
 

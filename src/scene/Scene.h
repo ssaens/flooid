@@ -7,17 +7,17 @@
 
 #include <assimp/scene.h>
 #include "Model.h"
+#include "Light.h"
 
 using namespace std;
 
 class Scene {
 private:
     Model model;
-    // Light light;
+    Light light;
     std::vector<glm::vec3> particle_positions;
 
 public:
-
     Scene();
     void load(std::string path);
 //    void save(std::string path);

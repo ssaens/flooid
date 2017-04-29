@@ -8,21 +8,16 @@
 
 Application::Application() {}
 
-Application::~Application() {
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-}
+Application::~Application() {}
 
 void Application::init() {
-    
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
 
-    sphere = generate_sphere_mesh(1, 10, 10);
-
-    shader.load("src/shaders/particle.vert", "src/shaders/particle.frag");
-    solid_shader.load("src/shaders/particle.vert", "src/shaders/particle_outline.frag");
+    particle_shader.load("src/shaders/particle.vert", "src/shaders/particle.frag");
+    pm.set_shader(particle_shader);
+    pm.init();
     mode = MODE_EDIT;
 
     last_x = screen_w / 2;
@@ -31,31 +26,27 @@ void Application::init() {
 }
 
 void Application::render() {
-    shader.use();
     glm::mat4 projection = glm::perspective(camera.zoom, (float) screen_w / (float) screen_h, camera.n_clip, camera.f_clip);
     glm::mat4 view = camera.get_view_matrix();
     glm::mat4 model;
 
     glm::vec3 lightPos(5, 5, 5);
     glm::vec3 lightColor(1, 1, 1);
-    GLint lightPosLoc = glGetUniformLocation(shader.program, "light_pos");
+    GLint lightPosLoc = glGetUniformLocation(particle_shader.program, "light_pos");
     glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
-    GLint lightColorLoc = glGetUniformLocation(shader.program, "light_color");
+    GLint lightColorLoc = glGetUniformLocation(particle_shader.program, "light_color");
     glUniform3f(lightColorLoc, lightColor.r, lightColor.g, lightColor.b);
 
     // Get their uniform location
-    glUniformMatrix4fv(glGetUniformLocation(shader.program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-    glUniformMatrix4fv(glGetUniformLocation(shader.program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glBindVertexArray(0);
-    sphere.render(shader);
+    glUniformMatrix4fv(glGetUniformLocation(particle_shader.program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    glUniformMatrix4fv(glGetUniformLocation(particle_shader.program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(particle_shader.program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    pm.render();
 }
 
 void Application::update(float dt) {
     move_camera(dt);
+    pm.step(dt);
 }
 
 void Application::resize(int width, int height) {

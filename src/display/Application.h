@@ -9,6 +9,7 @@
 #include "Camera.h"
 #include "../scene/Shader.h"
 #include "../scene/Mesh.h"
+#include "../PBD/ParticleManager.h"
 
 using namespace eng;
 
@@ -32,14 +33,14 @@ public:
     virtual void scroll_event(double offset_x, double offset_y);
     virtual void mouse_event(int button, int action, int mods);
 
-    virtual std::string name() { return "Test"; }
+    virtual std::string name() { return "Position Based Fluid Simulator"; }
 
 private:
-    GLuint VAO, VBO;
-    Mesh sphere;
     Camera camera;
-    Shader shader, solid_shader;
+    Shader particle_shader;
     Mode mode;
+
+    ParticleManager pm;
 
     // Hacky Camera Stuff
     bool keys[1024];
