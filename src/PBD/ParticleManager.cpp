@@ -12,9 +12,9 @@ ParticleManager::ParticleManager() {}
 void ParticleManager::init() {
     particle_radius = PARTICLE_RADIUS;
     accels.push_back(ACCEL_GRAVITY);
-    int nx = 10;
-    int ny = 10;
-    int nz = 10;
+    int nx = 15;
+    int ny = 15;
+    int nz = 15;
 
     float d = particle_radius * 2;
     for (int x = 0; x < nx; ++x) {
@@ -35,7 +35,7 @@ void ParticleManager::init() {
     Plane ground(glm::dvec3(0, 0, 0), glm::dvec3(0, 1, 0), 0);
     Plane side0(glm::dvec3(1, 0, 0), glm::dvec3(1, 0, 0), 0);
     Plane side1(glm::dvec3(0, 0, 1), glm::dvec3(0, 0, 1), 0);
-    Plane side2(glm::dvec3(-1, 0, 0), glm::dvec3(1, 0, 0), 0);
+    Plane side2(glm::dvec3(-2, 0, 0), glm::dvec3(1, 0, 0), 0);
     Plane side3(glm::dvec3(0, 0, -1), glm::dvec3(0, 0, 1), 0);
     Plane side4(glm::dvec3(0, 3, 0), glm::dvec3(0, 1, 0), 0);
     planes.push_back(ground);

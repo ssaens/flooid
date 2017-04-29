@@ -5,7 +5,6 @@
 #ifndef FLOOID2_MODEL_H
 #define FLOOID2_MODEL_H
 
-
 #include "Shader.h"
 #include "Mesh.h"
 #include <assimp/scene.h>
@@ -16,7 +15,7 @@ private:
     vector<Mesh> meshes;
     string directory;
     /*  Functions   */
-    void loadModel(string path);
+    void load(string path);
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
     vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
@@ -25,8 +24,9 @@ public:
     /*  Functions   */
     Model() {}
     void load(GLchar *path);
-    void Draw(Shader &shader);
+    void render(Shader &shader);
 };
 
+GLint TextureFromFile(const char* path, string directory);
 
 #endif //FLOOID2_MODEL_H
