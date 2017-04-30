@@ -144,7 +144,7 @@ GLint TextureFromFile(const char* path, string directory) {
     GLuint textureID;
     glGenTextures(1, &textureID);
     int width, height, channels;
-    unsigned char* image = SOIL_load_image(filename.c_str(), &width, &height, &channels, SOIL_LOAD_L);
+    unsigned char* image = SOIL_load_image(filename.c_str(), &width, &height, &channels, SOIL_LOAD_RGB);
     // Assign texture to ID
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);

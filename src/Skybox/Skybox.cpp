@@ -29,12 +29,12 @@ void Skybox::load_cube_map(std::vector<std::string> faces) {
     glGenTextures(1, &textureID);
     glActiveTexture(GL_TEXTURE0);
 
-    int w, h;
+    int w, h, c;
     unsigned char *image;
 
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
     for (GLuint i = 0; i < faces.size(); ++i) {
-        image = SOIL_load_image(faces[i].c_str(), &w, &h, 0, SOIL_LOAD_RGB);
+        image = SOIL_load_image(faces[i].c_str(), &w, &h, &c, SOIL_LOAD_RGB);
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
                      GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
     }
