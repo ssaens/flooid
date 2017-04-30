@@ -22,17 +22,9 @@ void Application::init() {
     light.pos = glm::vec3(3, 3, 0);
     light.color = glm::vec3(1, 1, 1);
     light_mesh = generate_cube_mesh(.2);
+    skybox.load_cube_map(faces);
 
     pm.set_parent(this);
-
-    vector<const char *> faces;
-    faces.push_back("src/Skybox/textures/right.jpg");
-    faces.push_back("src/Skybox/textures/left.jpg");
-    faces.push_back("src/Skybox/textures/top.jpg");
-    faces.push_back("src/Skybox/textures/bottom.jpg");
-    faces.push_back("src/Skybox/textures/back.jpg");
-    faces.push_back("src/Skybox/textures/front.jpg");
-    skybox.load_cube_map(faces);
 
     pm.init();
 }
@@ -56,6 +48,7 @@ void Application::render() {
 
 void Application::update(float dt) {
     move_camera(dt);
+    pm.step(dt);
     pm.step(dt);
 }
 
@@ -121,4 +114,14 @@ void Application::move_camera(float dt) {
     if (keys[GLFW_KEY_LEFT_SHIFT]) {
         camera.keyboard_event(DOWN, dt);
     }
+}
+
+void Application::set_cube_path(std::string cube_path) {
+    faces.push_back(cube_path + "right.jpg");
+    faces.push_back(cube_path + "left.jpg");
+    faces.push_back(cube_path + "top.jpg");
+    faces.push_back(cube_path + "bottom.jpg");
+    faces.push_back(cube_path + "back.jpg");
+    faces.push_back(cube_path + "front.jpg");
+
 }

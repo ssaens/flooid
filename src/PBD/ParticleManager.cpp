@@ -68,6 +68,12 @@ void ParticleManager::init() {
     lightColorLoc = glGetUniformLocation(particle_shader.program, "light_color");
     glUniform3f(lightColorLoc, light.color.r, light.color.g, light.color.b);
 
+    water_shader.use();
+    lightPosLoc = glGetUniformLocation(water_shader.program, "light_pos");
+    glUniform3f(lightPosLoc, light.pos.x, light.pos.y, light.pos.z);
+    lightColorLoc = glGetUniformLocation(water_shader.program, "light_color");
+    glUniform3f(lightColorLoc, light.color.r, light.color.g, light.color.b);
+
     particle_mesh = generate_sphere_mesh(PARTICLE_RADIUS * 0.9f, 10, 10);
 
     glGenBuffers(1, &instanceVBO);
@@ -183,10 +189,6 @@ std::vector<Particle *> ParticleManager::neighborhood(Particle& p) {
         }
     }
     return neighbors;
-}
-
-void ParticleManager::set_shader(Shader &shader) {
-    particle_shader = shader;
 }
 
 void ParticleManager::next_mode() {

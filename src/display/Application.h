@@ -35,7 +35,10 @@ public:
 
     virtual std::string name() { return "Position Based Fluid Simulator"; }
 
+    void set_cube_path(std::string cube_path);
+
 private:
+    vector<std::string> faces;
     Skybox skybox;
     Camera camera;
     Shader light_shader;

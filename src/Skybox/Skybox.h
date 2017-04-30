@@ -62,7 +62,7 @@ private:
 public:
     Skybox();
     ~Skybox();
-    void load_cube_map(std::vector<const char *> faces);
+    void load_cube_map(std::vector<std::string> faces);
     void render(glm::mat4 &view, glm::mat4 &projection);
     GLuint textureID;
 };

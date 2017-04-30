@@ -7,7 +7,7 @@
 
 #include <glm/glm.hpp>
 
-const float DELTA_T = 0.0083;
+const float DELTA_T = 0.004;
 const glm::vec3 ACCEL_GRAVITY(0, -9.8f, 0);
 
 const int SOLVER_ITERS = 4;

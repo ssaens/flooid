@@ -67,8 +67,6 @@ public:
 
     void step(float dt);
 
-    void set_shader(Shader &shader);
-
     void next_mode();
 
     void set_parent(Application *app);
