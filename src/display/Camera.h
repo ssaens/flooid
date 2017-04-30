@@ -124,9 +124,9 @@ public:
         if (direction == RIGHT)
             this->pos += this->right * velocity;
         if (direction == UP)
-            this->pos += this->up * velocity;
+            this->pos += this->world_up * velocity;
         if (direction == DOWN)
-            this->pos -= this->up * velocity;
+            this->pos -= this->world_up * velocity;
     }
 
     // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.

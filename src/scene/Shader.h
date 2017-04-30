@@ -25,6 +25,7 @@ struct Shader {
     }
 
     void load(const GLchar *vertex_path, const GLchar *frag_path) {
+        std::cout << "LOADING: " << vertex_path << " " << frag_path << std::endl;
         // 1. Retrieve the vertex/fragment source code from filePath
         std::string vertexCode;
         std::string fragmentCode;
@@ -50,6 +51,7 @@ struct Shader {
         }
         catch (std::ifstream::failure e) {
             std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+            exit(1);
         }
         const GLchar *vShaderCode = vertexCode.c_str();
         const GLchar *fShaderCode = fragmentCode.c_str();
@@ -67,6 +69,7 @@ struct Shader {
         if (!success) {
             glGetShaderInfoLog(vertex, 512, NULL, infoLog);
             std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+            exit(1);
         };
 
         // Fragment Shader
@@ -79,6 +82,7 @@ struct Shader {
         {
             glGetShaderInfoLog(fragment, 512, NULL, infoLog);
             std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+            exit(1);
         }
 
         // Shader Program
@@ -91,6 +95,7 @@ struct Shader {
         if (!success) {
             glGetProgramInfoLog(this->program, 512, NULL, infoLog);
             std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+            exit(1);
         }
 
         // Delete the shaders as they're linked into our program now and no longer necessery

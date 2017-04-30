@@ -3,7 +3,6 @@
 //
 
 #include "Application.h"
-#include "../util.h"
 #include <glm/gtc/type_ptr.hpp>
 
 Application::Application() {}
@@ -12,36 +11,47 @@ Application::~Application() {}
 
 void Application::init() {
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
+    glDepthFunc(GL_LEQUAL);
     glEnable(GL_CULL_FACE);
 
-    particle_shader.load("src/shaders/particle.vert", "src/shaders/particle.frag");
-    pm.set_shader(particle_shader);
-    pm.init();
-    mode = MODE_EDIT;
+    light_shader.load("src/shaders/basic.vert", "src/shaders/basic.frag");
 
     last_x = screen_w / 2;
     last_y = screen_h / 2;
     first_mouse = true;
+    light.pos = glm::vec3(3, 3, 0);
+    light.color = glm::vec3(1, 1, 1);
+    light_mesh = generate_cube_mesh(.2);
+
+    pm.set_parent(this);
+
+    vector<const char *> faces;
+    faces.push_back("src/Skybox/textures/right.jpg");
+    faces.push_back("src/Skybox/textures/left.jpg");
+    faces.push_back("src/Skybox/textures/top.jpg");
+    faces.push_back("src/Skybox/textures/bottom.jpg");
+    faces.push_back("src/Skybox/textures/back.jpg");
+    faces.push_back("src/Skybox/textures/front.jpg");
+    skybox.load_cube_map(faces);
+
+    pm.init();
 }
 
 void Application::render() {
     glm::mat4 projection = glm::perspective(camera.zoom, (float) screen_w / (float) screen_h, camera.n_clip, camera.f_clip);
     glm::mat4 view = camera.get_view_matrix();
+
+    pm.render(camera, projection, view);
+
+    light_shader.use();
     glm::mat4 model;
+    glUniformMatrix4fv(glGetUniformLocation(light_shader.program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    glUniformMatrix4fv(glGetUniformLocation(light_shader.program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+    model = glm::translate(model, light.pos);
+    glUniformMatrix4fv(glGetUniformLocation(light_shader.program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    light_mesh.render(light_shader);
 
-    glm::vec3 lightPos(5, 5, 5);
-    glm::vec3 lightColor(1, 1, 1);
-    GLint lightPosLoc = glGetUniformLocation(particle_shader.program, "light_pos");
-    glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
-    GLint lightColorLoc = glGetUniformLocation(particle_shader.program, "light_color");
-    glUniform3f(lightColorLoc, lightColor.r, lightColor.g, lightColor.b);
-
-    // Get their uniform location
-    glUniformMatrix4fv(glGetUniformLocation(particle_shader.program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-    glUniformMatrix4fv(glGetUniformLocation(particle_shader.program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(glGetUniformLocation(particle_shader.program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-    pm.render();
+    skybox.render(view, projection);
 }
 
 void Application::update(float dt) {
@@ -50,16 +60,16 @@ void Application::update(float dt) {
 }
 
 void Application::resize(int width, int height) {
-
+    screen_w = width;
+    screen_h = height;
 }
 
 void Application::keyboard_event(int key, int action, int mods) {
-    if (key == GLFW_KEY_C) {
-        if (mode == MODE_EDIT) {
-            mode = MODE_VIEW;
-        } else {
-            mode = MODE_EDIT;
-        }
+    if (key == GLFW_KEY_M) {
+        pm.next_mode();
+    }
+    if (key == GLFW_KEY_R) {
+        pm.reset();
     }
     if (key >= 0 && key < 1024) {
         if (action == GLFW_PRESS) {

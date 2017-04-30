@@ -7,18 +7,18 @@
 
 #include <eng/eng.h>
 #include "Camera.h"
+#include "../util.h"
 #include "../scene/Shader.h"
 #include "../scene/Mesh.h"
 #include "../PBD/ParticleManager.h"
+#include "../scene/Model.h"
+#include "../scene/Light.h"
+#include "../Skybox/Skybox.h"
 
 using namespace eng;
 
-enum Mode {
-    MODE_EDIT,
-    MODE_VIEW,
-};
-
 class Application : public Renderer {
+    friend class ParticleManager;
 public:
     Application();
     ~Application();
@@ -36,9 +36,11 @@ public:
     virtual std::string name() { return "Position Based Fluid Simulator"; }
 
 private:
+    Skybox skybox;
     Camera camera;
-    Shader particle_shader;
-    Mode mode;
+    Shader light_shader;
+    Mesh light_mesh;
+    Light light;
 
     ParticleManager pm;
 

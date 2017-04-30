@@ -41,3 +41,44 @@ Mesh generate_sphere_mesh(float radius, unsigned int lats, unsigned int longs) {
 
     return Mesh(vertices, indices, textures);
 }
+
+Mesh generate_cube_mesh(float side) {
+    glm::vec3 points[8] = {
+        glm::vec3(0.f, 0.f, 0.f),
+        glm::vec3(0.f, 0.f, 1.f),
+        glm::vec3(0.f, 1.f, 0.f),
+        glm::vec3(0.f, 1.f, 1.f),
+        glm::vec3(1.f, 0.f, 0.f),
+        glm::vec3(1.f, 0.f, 1.f),
+        glm::vec3(1.f, 1.f, 0.f),
+        glm::vec3(1.f, 1.f, 1.f),
+    };
+
+    std::vector<Vertex> vertices;
+    std::vector<Texture> textures;
+
+    for (int i = 0; i < 8; i++) {
+        Vertex v;
+        v.pos = points[i] * (side / 2);
+        v.n = glm::normalize(points[i]);
+        v.tex = glm::vec2(i / 4, i % 4);
+        vertices.push_back(v);
+    }
+
+    std::vector<GLuint> indices = {
+            0, 4, 6,
+            0, 6, 2,
+            4, 5, 7,
+            4, 7, 6,
+            5, 3, 7,
+            5, 1, 3,
+            1, 0, 2,
+            1, 2, 3,
+            3, 2, 6,
+            3, 6, 7,
+            1, 4, 0,
+            1, 5, 4,
+    };
+
+    return Mesh(vertices, indices, textures);
+}

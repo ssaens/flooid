@@ -14,7 +14,8 @@ set(FLOOID2_SOURCE
         PBD/PBDSolver.cpp
 
         scene/Scene.cpp
-        scene/Plane.cpp)
+        scene/Plane.cpp
+        Skybox/Skybox.cpp)
 
 # flooid header
 set(FLOOID2_HEADER
@@ -36,7 +37,8 @@ set(FLOOID2_HEADER
 
         scene/Light.h
         scene/Scene.h
-        scene/Plane.h)
+        scene/Plane.h
+        Skybox/Skybox.h)
 
 
 #-------------------------------------------------------------------------------

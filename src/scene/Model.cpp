@@ -3,6 +3,9 @@
 //
 
 #include "Model.h"
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <SOIL/SOIL.h>
 
 void Model::load(string path) {
     Assimp::Importer import;
@@ -32,7 +35,7 @@ void Model::processNode(aiNode* node, const aiScene* scene) {
     }
 }  
 
-Mesh processMesh(aiMesh* mesh, const aiScene* scene) {
+Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
      // Data to fill
     vector<Vertex> vertices;
     vector<GLuint> indices;
@@ -47,12 +50,12 @@ Mesh processMesh(aiMesh* mesh, const aiScene* scene) {
         vector.x = mesh->mVertices[i].x;
         vector.y = mesh->mVertices[i].y;
         vector.z = mesh->mVertices[i].z;
-        vertex.Position = vector;
+        vertex.pos = vector;
         // Normals
         vector.x = mesh->mNormals[i].x;
         vector.y = mesh->mNormals[i].y;
         vector.z = mesh->mNormals[i].z;
-        vertex.Normal = vector;
+        vertex.n = vector;
         // Texture Coordinates
         if(mesh->mTextureCoords[0]) // Does the mesh contain texture coordinates?
         {
@@ -61,10 +64,10 @@ Mesh processMesh(aiMesh* mesh, const aiScene* scene) {
             // use models where a vertex can have multiple texture coordinates so we always take the first set (0).
             vec.x = mesh->mTextureCoords[0][i].x; 
             vec.y = mesh->mTextureCoords[0][i].y;
-            vertex.TexCoords = vec;
+            vertex.tex = vec;
         }
         else
-            vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+            vertex.tex = glm::vec2(0.0f, 0.0f);
         vertices.push_back(vertex);
     }
     // Now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
@@ -98,7 +101,7 @@ Mesh processMesh(aiMesh* mesh, const aiScene* scene) {
     return Mesh(vertices, indices, textures);
 }  
 
-vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName) {
+vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName) {
     vector<Texture> textures;
     for(GLuint i = 0; i < mat->GetTextureCount(type); i++)
     {
@@ -128,9 +131,9 @@ vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string
     return textures;
 }
 
-void render(Shader shader) {
+void Model::render(Shader &shader) {
     for(GLuint i = 0; i < this->meshes.size(); i++)
-        this->meshes[i].Draw(shader);
+        this->meshes[i].render(shader);
 }
 
 

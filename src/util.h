@@ -10,5 +10,6 @@
 #include "scene/Mesh.h"
 
 Mesh generate_sphere_mesh(float radius, unsigned int lats, unsigned int longs);
+Mesh generate_cube_mesh(float side);
 
 #endif //FLOOID2_UTIL_H

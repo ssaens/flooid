@@ -2,8 +2,10 @@
 // Created by Dillon Yao on 4/26/17.
 //
 
+#include <glm/gtc/type_ptr.hpp>
 #include "ParticleManager.h"
 #include "../util.h"
+#include "../display/Application.h"
 
 using namespace glm;
 
@@ -12,9 +14,12 @@ ParticleManager::ParticleManager() {}
 void ParticleManager::init() {
     particle_radius = PARTICLE_RADIUS;
     accels.push_back(ACCEL_GRAVITY);
-    int nx = 15;
+    shade_mode = SHADE_PARTICLE;
+    skybox_id = parent->skybox.textureID;
+
+    int nx = 10;
     int ny = 15;
-    int nz = 15;
+    int nz = 10;
 
     float d = particle_radius * 2;
     for (int x = 0; x < nx; ++x) {
@@ -27,7 +32,7 @@ void ParticleManager::init() {
                 par.v = glm::dvec3();
                 par.m = PARTICLE_MASS;
                 particles.push_back(par);
-                particle_positions.push_back(par.p);
+                initial_positions.push_back(par.p);
             }
         }
     }
@@ -45,27 +50,52 @@ void ParticleManager::init() {
     planes.push_back(side3);
     planes.push_back(side4);
 
+    particle_shader.load("src/shaders/particle.vert", "src/shaders/particle.frag");
+    velocity_shader.load("src/shaders/particle_velocity.vert", "src/shaders/particle_velocity.frag");
+    water_shader.load("src/shaders/water.vert", "src/shaders/water.frag");
+
+    Light &light = this->parent->light;
+
+    particle_shader.use();
+    GLint lightPosLoc = glGetUniformLocation(particle_shader.program, "light_pos");
+    glUniform3f(lightPosLoc, light.pos.x, light.pos.y, light.pos.z);
+    GLint lightColorLoc = glGetUniformLocation(particle_shader.program, "light_color");
+    glUniform3f(lightColorLoc, light.color.r, light.color.g, light.color.b);
+
+    velocity_shader.use();
+    lightPosLoc = glGetUniformLocation(particle_shader.program, "light_pos");
+    glUniform3f(lightPosLoc, light.pos.x, light.pos.y, light.pos.z);
+    lightColorLoc = glGetUniformLocation(particle_shader.program, "light_color");
+    glUniform3f(lightColorLoc, light.color.r, light.color.g, light.color.b);
+
     particle_mesh = generate_sphere_mesh(PARTICLE_RADIUS * 0.9f, 10, 10);
 
     glGenBuffers(1, &instanceVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * particles.size(), NULL, GL_STREAM_DRAW);
-
     glBindVertexArray(particle_mesh.VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * particles.size(), NULL, GL_STREAM_DRAW);
+
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid *) 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), (GLvoid *) offsetof(Particle, p));
     glVertexAttribDivisor(3, 1);
+
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), (GLvoid *) offsetof(Particle, v));
+    glVertexAttribDivisor(4, 1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
 
-void ParticleManager::render() {
+void ParticleManager::render(Camera &c, mat4 &projection, mat4 &view) {
     glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * particles.size(), NULL, GL_STREAM_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, particles.size() * sizeof(glm::vec3), &particle_positions[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * particles.size(), NULL, GL_STREAM_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, offsetof(Particle, p), particles.size() * sizeof(Particle), &particles[0]);
 
-    particle_shader.use();
+    bind_shader(projection, view, c.pos);
     glBindVertexArray(particle_mesh.VAO);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_id);
     glDrawElementsInstanced(GL_TRIANGLES, particle_mesh.indices.size(), GL_UNSIGNED_INT, 0, particles.size());
     glBindVertexArray(0);
 }
@@ -73,6 +103,7 @@ void ParticleManager::render() {
 void ParticleManager::step(float dt) {
     dt = DELTA_T;
     for (Particle &p : particles) {
+        p.f = glm::vec3(0);
         for (auto accel : accels) {
             p.f += accel * p.m;
         }
@@ -117,8 +148,6 @@ void ParticleManager::step(float dt) {
         p.f += PBDSolver::getPBDsolver()->f_vorticity(&p, p.neighborhood);
         p.v = PBDSolver::getPBDsolver()->XSPH_vel(&p, p.neighborhood);
         p.p = p.pred_p;
-        p.f = glm::vec3(0, 0, 0);
-        particle_positions[i] = p.p;
     }
 }
 
@@ -158,4 +187,54 @@ std::vector<Particle *> ParticleManager::neighborhood(Particle& p) {
 
 void ParticleManager::set_shader(Shader &shader) {
     particle_shader = shader;
+}
+
+void ParticleManager::next_mode() {
+    shade_mode = (shade_mode + 1) % SHADERS_TOTAL;
+}
+
+void ParticleManager::bind_shader(mat4 &projection, mat4 &view, vec3 &view_pos) {
+    switch(shade_mode) {
+        case SHADE_PARTICLE: {
+            particle_shader.use();
+            glUniform3f(glGetUniformLocation(particle_shader.program, "view_pos"), view_pos.x, view_pos.y, view_pos.z);
+            glUniformMatrix4fv(glGetUniformLocation(particle_shader.program, "projection"), 1, GL_FALSE, value_ptr(projection));
+            glUniformMatrix4fv(glGetUniformLocation(particle_shader.program, "view"), 1, GL_FALSE, value_ptr(view));
+            break;
+        }
+
+        case SHADE_VELOCITY: {
+            velocity_shader.use();
+            glUniform3f(glGetUniformLocation(velocity_shader.program, "view_pos"), view_pos.x, view_pos.y, view_pos.z);
+            glUniformMatrix4fv(glGetUniformLocation(velocity_shader.program, "projection"), 1, GL_FALSE, value_ptr(projection));
+            glUniformMatrix4fv(glGetUniformLocation(velocity_shader.program, "view"), 1, GL_FALSE, value_ptr(view));
+            break;
+        }
+
+        case SHADE_WATER: {
+            water_shader.use();
+            glUniform3f(glGetUniformLocation(water_shader.program, "view_pos"), view_pos.x, view_pos.y, view_pos.z);
+            glUniformMatrix4fv(glGetUniformLocation(water_shader.program, "projection"), 1, GL_FALSE, value_ptr(projection));
+            glUniformMatrix4fv(glGetUniformLocation(water_shader.program, "view"), 1, GL_FALSE, value_ptr(view));
+            glActiveTexture(GL_TEXTURE0);
+            glUniform1i(glGetUniformLocation(water_shader.program, "skybox"), 0);
+            break;
+        }
+    }
+}
+
+void ParticleManager::set_parent(Application *app) {
+    this->parent = app;
+}
+
+void ParticleManager::reset() {
+    auto par = particles.begin();
+    auto pos = initial_positions.begin();
+    for (;par != particles.end();) {
+        par->p = *pos;
+        par->pred_p = glm::dvec3();
+        par->v = glm::dvec3();
+        ++par;
+        ++pos;
+    }
 }
