@@ -117,11 +117,11 @@ void Application::move_camera(float dt) {
 }
 
 void Application::set_cube_path(std::string cube_path) {
-    faces.push_back(cube_path + "right.jpg");
-    faces.push_back(cube_path + "left.jpg");
-    faces.push_back(cube_path + "top.jpg");
-    faces.push_back(cube_path + "bottom.jpg");
-    faces.push_back(cube_path + "back.jpg");
-    faces.push_back(cube_path + "front.jpg");
+    faces.push_back(cube_path + "right.tga");
+    faces.push_back(cube_path + "left.tga");
+    faces.push_back(cube_path + "top.tga");
+    faces.push_back(cube_path + "bottom.tga");
+    faces.push_back(cube_path + "back.tga");
+    faces.push_back(cube_path + "front.tga");
 
 }
