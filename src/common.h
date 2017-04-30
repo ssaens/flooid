@@ -20,7 +20,7 @@ const float EPS_T = 600;
 
 const float PRESSURE_STRENGTH = 0.000001;
 const float PRESSURE_POW = 4;
-const glm::vec3 DELTA_Q(0.2f * KERNEL_RADIUS, 0.f, 0.f);
+const glm::vec3 DELTA_Q(0.3f * KERNEL_RADIUS, 0.f, 0.f);
 
 const float VISCOSITY = 0.01;
 
