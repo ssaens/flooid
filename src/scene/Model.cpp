@@ -5,7 +5,7 @@
 #include "Model.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
-#include <SOIL/SOIL.h>
+#include <soil/SOIL.h>
 
 void Model::load(string path) {
     Assimp::Importer import;
