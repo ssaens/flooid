@@ -17,13 +17,13 @@ void ParticleManager::init() {
     shade_mode = SHADE_PARTICLE;
     skybox_id = parent->skybox.textureID;
 
-    int nx = 10;
-    int ny = 10;
-    int nz = 10;
+    int nx = 15;
+    int ny = 15;
+    int nz = 15;
 
     float d = particle_radius * 2;
     for (int x = 0; x < nx; ++x) {
-        for (int y = 4 / d; y < 4 / d + ny; ++y) {
+        for (int y = 3 / d; y < 3 / d + ny; ++y) {
             for (int z = 0; z < nz; ++z) {
                 Particle par;
                 par.p = dvec3((x + 0.5 - nx * 0.5) * d, y * d, (z + 0.5 - nz * 0.5) * d);
@@ -76,7 +76,7 @@ void ParticleManager::init() {
     glUniform3f(lightColorLoc, light.color.r, light.color.g, light.color.b);
 
     particle_mesh = generate_sphere_mesh(PARTICLE_RADIUS * 0.9f, 10, 10);
-
+//    particle_mesh = generate_cube_mesh(PARTICLE_RADIUS * 2);
     glGenBuffers(1, &instanceVBO);
     glBindVertexArray(particle_mesh.VAO);
 
