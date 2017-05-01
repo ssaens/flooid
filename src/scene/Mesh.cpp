@@ -8,6 +8,15 @@ Mesh::Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> text
     this->vertices = vertices;
     this->indices = indices;
     this->textures = textures;
+
+    auto i = indices.begin();
+    for (; i!= indices.end();) {
+        vec3 v1 = vertices[*i++].pos;
+        vec3 v2 = vertices[*i++].pos;
+        vec3 v3 = vertices[*i++].pos;
+        triangles.emplace_back(v1, v2, v3);
+    }
+
     this->init();
 }
 
@@ -67,4 +76,10 @@ void Mesh::render(Shader &shader) {
     glBindVertexArray(this->VAO);
     glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+}
+
+void Mesh::collide(Particle &p) {
+    for (Triangle &t : triangles) {
+        t.collide(p);
+    }
 }

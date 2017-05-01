@@ -25,6 +25,7 @@ public:
     Model() {}
     void render(Shader &shader);
     void load(string path);
+    void collide(Particle &p);
 };
 
 GLint TextureFromFile(const char* path, string directory);

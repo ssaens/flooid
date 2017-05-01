@@ -11,6 +11,8 @@
 #include <string>
 #include "Shader.h"
 #include <assimp/scene.h>
+#include "triangle.h"
+#include "../PBD/Particle.h"
 
 using namespace std;
 
@@ -32,6 +34,8 @@ private:
     /*  Functions    */
     void init();
 
+    std::vector<Triangle> triangles;
+
 public:
     /*  Render data  */
     GLuint VAO, VBO, EBO;
@@ -46,6 +50,7 @@ public:
     Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures);
 
     void render(Shader &shader);
+    void collide(Particle &p);
 };
 
 

@@ -27,6 +27,12 @@ void Application::init() {
     pm.set_parent(this);
 
     pm.init();
+
+    for (int i = 0; i < 1024; ++i) {
+        keys[i] = 0;
+    }
+
+    test_model.load("obj/cube.obj");
 }
 
 void Application::render() {
@@ -43,7 +49,12 @@ void Application::render() {
     glUniformMatrix4fv(glGetUniformLocation(light_shader.program, "model"), 1, GL_FALSE, glm::value_ptr(model));
     light_mesh.render(light_shader);
 
+    model = glm::mat4();
+    glUniformMatrix4fv(glGetUniformLocation(light_shader.program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    test_model.render(light_shader);
+
     skybox.render(view, projection);
+    
 }
 
 void Application::update(float dt) {
@@ -117,11 +128,11 @@ void Application::move_camera(float dt) {
 }
 
 void Application::set_cube_path(std::string cube_path) {
-    faces.push_back(cube_path + "right.tga");
-    faces.push_back(cube_path + "left.tga");
-    faces.push_back(cube_path + "top.tga");
-    faces.push_back(cube_path + "bottom.tga");
-    faces.push_back(cube_path + "back.tga");
-    faces.push_back(cube_path + "front.tga");
+    faces.push_back(cube_path + "right");
+    faces.push_back(cube_path + "left");
+    faces.push_back(cube_path + "top");
+    faces.push_back(cube_path + "bottom");
+    faces.push_back(cube_path + "back");
+    faces.push_back(cube_path + "front");
 
 }

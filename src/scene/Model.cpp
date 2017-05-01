@@ -8,13 +8,14 @@
 #include <soil/SOIL.h>
 
 void Model::load(string path) {
+    cout << "LOADING MODEL " << path << endl;
     Assimp::Importer import;
     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);	
 	
     if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) 
     {
         cout << "ERROR::ASSIMP::" << import.GetErrorString() << endl;
-        return;
+        exit(1);
     }
     this->directory = path.substr(0, path.find_last_of('/'));
 
@@ -136,6 +137,11 @@ void Model::render(Shader &shader) {
         this->meshes[i].render(shader);
 }
 
+void Model::collide(Particle &p) {
+    for (Mesh &m : meshes) {
+        m.collide(p);
+    }
+}
 
 GLint TextureFromFile(const char* path, string directory) {
      //Generate texture ID and load texture data 

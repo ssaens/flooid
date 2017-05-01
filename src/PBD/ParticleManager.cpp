@@ -17,9 +17,9 @@ void ParticleManager::init() {
     shade_mode = SHADE_PARTICLE;
     skybox_id = parent->skybox.textureID;
 
-    int nx = 10;
+    int nx = 15;
     int ny = 15;
-    int nz = 10;
+    int nz = 15;
 
     float d = particle_radius * 2;
     for (int x = 0; x < nx; ++x) {
@@ -108,20 +108,15 @@ void ParticleManager::render(Camera &c, mat4 &projection, mat4 &view) {
 
 void ParticleManager::step(float dt) {
     dt = DELTA_T;
+    spacial_map.clear();
+
     for (Particle &p : particles) {
         p.f = glm::vec3(0);
         for (auto accel : accels) {
             p.f += accel * p.m;
         }
-    }
-
-    for (Particle &p : particles) {
         p.v = p.v + p.f * (1.f / p.m) * dt;
         p.pred_p = p.p + p.v * dt;
-    }
-
-    spacial_map.clear();
-    for (Particle &p : particles) {
         int hash = this->hash_bin(this->bin(p));
         if (spacial_map.find(hash) == spacial_map.end()) {
             spacial_map[hash] = new std::vector<Particle *>;
@@ -143,6 +138,7 @@ void ParticleManager::step(float dt) {
         }
         for (Particle &p_i : particles) {
             p_i.pred_p += p_i.dp;
+            parent->test_model.collide(p_i);
             for (Plane &plane : planes)
                 plane.collide(p_i);
         }

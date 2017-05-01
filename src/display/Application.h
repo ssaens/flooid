@@ -44,6 +44,7 @@ private:
     Shader light_shader;
     Mesh light_mesh;
     Light light;
+    Model test_model;
 
     ParticleManager pm;
 
