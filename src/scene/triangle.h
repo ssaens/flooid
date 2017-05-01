@@ -26,7 +26,7 @@ public:
 		vec3 s = p.p - v1;
 		vec3 s1 = cross(d, e2);
 		vec3 s2 = cross(s, e1);
-		float coeff = 1 / dot(s2, e1);
+		float coeff = 1 / dot(s1, e1);
 		
 		// Check if on opposite sides of plane
 		float pos_dot = glm::dot(p.p - this->v1, this->n);
@@ -41,11 +41,13 @@ public:
 		if (b1 >= 0 && b2 >= 0 && (1 - b1 - b2) >= 0) {
 			vec3 tangent = b1 * v2 + b2 * v3 + (1 - b1 - b2) * v1;
     		if (std::signbit(pred_dot) > 0) {
-    			tangent -= n * SURFACE_OFFSET;
-    		} else {
     			tangent += n * SURFACE_OFFSET;
+    		} else {
+    			tangent -= n * SURFACE_OFFSET;
     		}
     		p.pred_p = tangent;
+			p.collided = true;
+			p.v = glm::reflect(p.v, n) * 0.5f;
     	}
 	}
 };

@@ -32,6 +32,8 @@ void Application::init() {
         keys[i] = 0;
     }
 
+    glm::vec3 offset(-0.5, -0.5, 0.5);
+    test_model.set_offset(offset);
     test_model.load("obj/cube.obj");
 }
 

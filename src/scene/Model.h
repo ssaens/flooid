@@ -10,6 +10,7 @@
 #include <assimp/scene.h>
 
 class Model {
+    friend class Mesh;
 private:
     /*  Model Data  */
     vector<Mesh> meshes;
@@ -19,6 +20,7 @@ private:
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
     vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
+    vec3 offset;
 
 public:
     /*  Functions   */
@@ -26,6 +28,7 @@ public:
     void render(Shader &shader);
     void load(string path);
     void collide(Particle &p);
+    void set_offset(vec3 offset);
 };
 
 GLint TextureFromFile(const char* path, string directory);

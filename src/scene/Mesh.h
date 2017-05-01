@@ -29,10 +29,11 @@ struct Texture {
 };
 
 
+class Model;
+
 class Mesh {
 private:
     /*  Functions    */
-    void init();
 
     std::vector<Triangle> triangles;
 
@@ -47,10 +48,13 @@ public:
 
     /*  Functions  */
     Mesh() {}
-    Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures);
+    void init();
+    Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures, Model *parent=nullptr);
 
     void render(Shader &shader);
     void collide(Particle &p);
+
+    Model *parent;
 };
 
 

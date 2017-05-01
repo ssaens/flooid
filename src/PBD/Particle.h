@@ -22,6 +22,8 @@ struct Particle {
     GLfloat rho;
     GLfloat lambda;
 
+    bool collided;
+
     std::vector<struct Particle *> neighborhood;
 };
 

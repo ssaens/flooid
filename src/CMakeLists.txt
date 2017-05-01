@@ -38,6 +38,7 @@ set(FLOOID2_HEADER
         scene/Light.h
         scene/Scene.h
         scene/Plane.h
+        scene/triangle.h
         Skybox/Skybox.h)
 
 

@@ -79,6 +79,5 @@ Mesh generate_cube_mesh(float side) {
             1, 4, 0,
             1, 5, 4,
     };
-
     return Mesh(vertices, indices, textures);
 }

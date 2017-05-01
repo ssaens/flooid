@@ -17,13 +17,13 @@ void ParticleManager::init() {
     shade_mode = SHADE_PARTICLE;
     skybox_id = parent->skybox.textureID;
 
-    int nx = 15;
-    int ny = 15;
-    int nz = 15;
+    int nx = 10;
+    int ny = 10;
+    int nz = 10;
 
     float d = particle_radius * 2;
     for (int x = 0; x < nx; ++x) {
-        for (int y = 3; y < 3 + ny; ++y) {
+        for (int y = 4 / d; y < 4 / d + ny; ++y) {
             for (int z = 0; z < nz; ++z) {
                 Particle par;
                 par.p = dvec3((x + 0.5 - nx * 0.5) * d, y * d, (z + 0.5 - nz * 0.5) * d);
@@ -31,6 +31,7 @@ void ParticleManager::init() {
                 par.f = glm::dvec3();
                 par.v = glm::dvec3();
                 par.m = PARTICLE_MASS;
+                par.collided = false;
                 particles.push_back(par);
                 initial_positions.push_back(par.p);
             }
@@ -42,7 +43,7 @@ void ParticleManager::init() {
     Plane side1(glm::dvec3(0, 0, 1), glm::dvec3(0, 0, 1), 0);
     Plane side2(glm::dvec3(-2, 0, 0), glm::dvec3(1, 0, 0), 0);
     Plane side3(glm::dvec3(0, 0, -1), glm::dvec3(0, 0, 1), 0);
-    Plane side4(glm::dvec3(0, 3, 0), glm::dvec3(0, 1, 0), 0);
+    Plane side4(glm::dvec3(0, 5, 0), glm::dvec3(0, 1, 0), 0);
     planes.push_back(ground);
     planes.push_back(side0);
     planes.push_back(side1);
@@ -146,9 +147,11 @@ void ParticleManager::step(float dt) {
 
     for (int i = 0; i < particles.size(); ++i) {
         Particle &p = particles[i];
-        p.v = (1.f / dt) * (p.pred_p - p.p);
+        if (!p.collided)
+            p.v = (1.f / dt) * (p.pred_p - p.p);
         p.f += PBDSolver::getPBDsolver()->f_vorticity(&p, p.neighborhood);
         p.v = PBDSolver::getPBDsolver()->XSPH_vel(&p, p.neighborhood);
+        p.collided = false;
         p.p = p.pred_p;
     }
 }

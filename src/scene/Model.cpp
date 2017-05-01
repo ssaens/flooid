@@ -99,7 +99,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
     }
     
     // Return a mesh object created from the extracted mesh data
-    return Mesh(vertices, indices, textures);
+    return Mesh(vertices, indices, textures, this);
 }  
 
 vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName) {
@@ -164,4 +164,9 @@ GLint TextureFromFile(const char* path, string directory) {
     glBindTexture(GL_TEXTURE_2D, 0);
     SOIL_free_image_data(image);
     return textureID;
+}
+
+
+void Model::set_offset(vec3 offset) {
+    this->offset = offset;
 }

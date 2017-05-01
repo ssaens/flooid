@@ -3,17 +3,26 @@
 //
 
 #include "Mesh.h"
+#include "Model.h"
 
-Mesh::Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures) {
-    this->vertices = vertices;
+Mesh::Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures, Model *parent) {
+    this->parent = parent;
     this->indices = indices;
     this->textures = textures;
+    if (this->parent) {
+        for (Vertex v : vertices) {
+            v.pos += this->parent->offset;
+            this->vertices.push_back(v);
+        }
+    } else {
+        this->vertices = vertices;
+    }
 
     auto i = indices.begin();
     for (; i!= indices.end();) {
-        vec3 v1 = vertices[*i++].pos;
-        vec3 v2 = vertices[*i++].pos;
-        vec3 v3 = vertices[*i++].pos;
+        vec3 v1 = this->vertices[*i++].pos;
+        vec3 v2 = this->vertices[*i++].pos;
+        vec3 v3 = this->vertices[*i++].pos;
         triangles.emplace_back(v1, v2, v3);
     }
 
