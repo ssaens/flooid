@@ -137,11 +137,6 @@ void Model::render(Shader &shader) {
         this->meshes[i].render(shader);
 }
 
-void Model::collide(Particle &p) {
-    for (Mesh &m : meshes) {
-        m.collide(p);
-    }
-}
 
 GLint TextureFromFile(const char* path, string directory) {
      //Generate texture ID and load texture data 
@@ -166,7 +161,7 @@ GLint TextureFromFile(const char* path, string directory) {
     return textureID;
 }
 
-
 void Model::set_offset(vec3 offset) {
     this->offset = offset;
 }
+

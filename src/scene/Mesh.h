@@ -35,7 +35,6 @@ class Mesh {
 private:
     /*  Functions    */
 
-    std::vector<Triangle> triangles;
 
 public:
     /*  Render data  */
@@ -52,7 +51,6 @@ public:
     Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures, Model *parent=nullptr);
 
     void render(Shader &shader);
-    void collide(Particle &p);
 
     Model *parent;
 };

@@ -6,14 +6,15 @@
 #include "ParticleManager.h"
 #include "../util.h"
 #include "../display/Application.h"
+#include "../cuda/CudaPBDSolver.h"
 
 using namespace glm;
 
 ParticleManager::ParticleManager() {}
 
 void ParticleManager::init() {
+
     particle_radius = PARTICLE_RADIUS;
-    accels.push_back(ACCEL_GRAVITY);
     shade_mode = SHADE_PARTICLE;
     skybox_id = parent->skybox.textureID;
 
@@ -76,7 +77,6 @@ void ParticleManager::init() {
     glUniform3f(lightColorLoc, light.color.r, light.color.g, light.color.b);
 
     particle_mesh = generate_sphere_mesh(PARTICLE_RADIUS * 0.9f, 10, 10);
-//    particle_mesh = generate_cube_mesh(PARTICLE_RADIUS * 2);
     glGenBuffers(1, &instanceVBO);
     glBindVertexArray(particle_mesh.VAO);
 
@@ -93,6 +93,15 @@ void ParticleManager::init() {
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    triangles = &parent->test_model.triangles;
+
+    cudaMalloc((void **) &d_particles, particles.size() * sizeof(Particle));
+    cudaMalloc((void **) &d_triangles, triangles->size() * sizeof(Triangle));
+    cudaMalloc((void **) &d_planes, planes.size() * sizeof(Plane));
+
+    cudaMemcpy(d_planes, &planes[0], particles.size() * sizeof(Plane), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_triangles, &triangles->data()[0], triangles->size() * sizeof(Triangle), cudaMemcpyHostToDevice);
 }
 
 void ParticleManager::render(Camera &c, mat4 &projection, mat4 &view) {
@@ -111,49 +120,28 @@ void ParticleManager::step(float dt) {
     dt = DELTA_T;
     spacial_map.clear();
 
-    for (Particle &p : particles) {
-        p.f = glm::vec3(0);
-        for (auto accel : accels) {
-            p.f += accel * p.m;
-        }
-        p.v = p.v + p.f * (1.f / p.m) * dt;
-        p.pred_p = p.p + p.v * dt;
-        int hash = this->hash_bin(this->bin(p));
-        if (spacial_map.find(hash) == spacial_map.end()) {
-            spacial_map[hash] = new std::vector<Particle *>;
-        }
-        spacial_map[hash]->push_back(&p);
-    }
-
-    for (Particle &p : particles) {
-        p.neighborhood = this->neighborhood(p);
-    }
-
-    for (int i = 0; i < SOLVER_ITERS; ++i) {
-        for (Particle &p_i : particles) {
-            float lambda = PBDSolver::getPBDsolver()->lambda_i(&p_i, p_i.neighborhood);
-            p_i.lambda = lambda;
-        }
-        for (Particle &p_i : particles) {
-            p_i.dp = PBDSolver::getPBDsolver()->delta_p(&p_i, p_i.neighborhood);
-        }
-        for (Particle &p_i : particles) {
-            p_i.pred_p += p_i.dp;
-            parent->test_model.collide(p_i);
-            for (Plane &plane : planes)
-                plane.collide(p_i);
-        }
-    }
+    cudaMemcpy(d_particles, &particles[0], particles.size() * sizeof(Particle), cudaMemcpyHostToDevice);
+    seed_position(d_particles, particles.size());
+    cudaMemcpy(&particles[0], d_particles, particles.size() * sizeof(Particle), cudaMemcpyDeviceToHost);
 
     for (int i = 0; i < particles.size(); ++i) {
-        Particle &p = particles[i];
-        if (!p.collided)
-            p.v = (1.f / dt) * (p.pred_p - p.p);
-        p.f += PBDSolver::getPBDsolver()->f_vorticity(&p, p.neighborhood);
-        p.v = PBDSolver::getPBDsolver()->XSPH_vel(&p, p.neighborhood);
-        p.collided = false;
-        p.p = p.pred_p;
+        int hash = hash_bin(bin(particles[i]));
+        if (spacial_map.find(hash) == spacial_map.end()) {
+            spacial_map[hash] = new std::vector<int>();
+        }
+        spacial_map[hash]->push_back(i);
     }
+
+    for (Particle &p : particles) {
+        for (int n : this->neighborhood(p)) {
+            if (p.num_neighbors != 20)
+                p.neighborhood[++p.num_neighbors] = n;
+        }
+    }
+
+    cudaMemcpy(d_particles, &particles[0], particles.size() * sizeof(Particle), cudaMemcpyHostToDevice);
+    run_solver(d_particles, particles.size(), d_triangles, triangles->size(), d_planes, planes.size());
+    cudaMemcpy(&particles[0], d_particles, particles.size() * sizeof(Particle), cudaMemcpyDeviceToHost);
 }
 
 glm::ivec3 ParticleManager::bin(Particle& p) {
@@ -168,20 +156,21 @@ int ParticleManager::hash_bin(glm::ivec3 pos) {
     return (pos.x * 0x9e3779b9 + pos.y) * 1610612741 + pos.z;
 }
 
-std::vector<Particle *> ParticleManager::neighborhood(Particle& p) {
-    std::vector<Particle *> neighbors;
+std::vector<int> ParticleManager::neighborhood(Particle& p) {
+    std::vector<int> neighbors;
+    ivec3 original_bin = this->bin(p);
     for (int i = -1; i <= 1; ++i) {
         for (int j = -1; j <= 1; ++j) {
             for (int k = -1; k <= 1; ++k) {
-                glm::ivec3 offset = glm::ivec3(i, j, k);
-                glm::ivec3 bin = this->bin(p) + offset;
+                glm::ivec3 bin = original_bin + ivec3(i, j, k);
                 int hash = hash_bin(bin);
                 if (spacial_map.find(hash) == spacial_map.end()) {
                     continue;
                 }
-                for (Particle *neighbor : *spacial_map[hash]) {
-                    if (neighbor != &p && glm::length(neighbor->pred_p - p.pred_p) <= KERNEL_RADIUS) {
-                        neighbors.push_back(neighbor);
+                for (int n : *spacial_map[hash]) {
+                    Particle &neighbor = particles[n]
+                    if (neighbor != p && glm::length(neighbor.pred_p - p.pred_p) <= KERNEL_RADIUS) {
+                        neighbors.push_back(n);
                     }
                 }
             }

@@ -27,8 +27,8 @@ public:
     Model() {}
     void render(Shader &shader);
     void load(string path);
-    void collide(Particle &p);
     void set_offset(vec3 offset);
+    std::vector<Triangle> triangles;
 };
 
 GLint TextureFromFile(const char* path, string directory);

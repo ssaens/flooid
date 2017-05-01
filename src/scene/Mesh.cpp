@@ -20,12 +20,13 @@ Mesh::Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> text
 
     auto i = indices.begin();
     for (; i!= indices.end();) {
-        vec3 v1 = this->vertices[*i++].pos;
-        vec3 v2 = this->vertices[*i++].pos;
-        vec3 v3 = this->vertices[*i++].pos;
-        triangles.emplace_back(v1, v2, v3);
+        Triangle t;
+        t.v1 = this->vertices[*i++].pos;
+        t.v2 = this->vertices[*i++].pos;
+        t.v3 = this->vertices[*i++].pos;
+        t.n = normalize(cross((t.v2- t.v1), (t.v3 - t.v1)));
+        this->parent->triangles.push_back(t);
     }
-
     this->init();
 }
 

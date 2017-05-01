@@ -19,12 +19,12 @@ struct Particle {
     vec3 f;
 
     GLfloat m;
-    GLfloat rho;
     GLfloat lambda;
 
     bool collided;
 
-    std::vector<struct Particle *> neighborhood;
+    int neighborhood[20];
+    int num_neighbors;
 };
 
 #endif //FLOOID2_PARTICLE_H

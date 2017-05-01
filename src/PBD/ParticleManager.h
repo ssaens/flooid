@@ -44,17 +44,20 @@ private:
 
     int hash_bin(glm::ivec3 pos);
 
-    std::vector<Particle *> neighborhood(Particle &p);
+    std::vector<int> neighborhood(Particle &p);
 
-    std::vector<glm::vec3> accels;
-
-    std::map<int, std::vector<Particle *> *> spacial_map;
+    std::map<int, std::vector<int> *> spacial_map;
 
     float particle_radius;
 
     std::vector<Plane> planes;
+    std::vector<Triangle> *triangles;
 
     Application *parent;
+
+    Particle *d_particles;
+    Plane *d_planes;
+    Triangle *d_triangles;
 
 public:
     ParticleManager();
