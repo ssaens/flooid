@@ -41,7 +41,7 @@ private:
     vector<std::string> faces;
     Skybox skybox;
     Camera camera;
-    Shader light_shader;
+    Shader light_shader, model_shader;
     Mesh light_mesh;
     Light light;
     Model test_model;
