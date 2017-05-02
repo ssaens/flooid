@@ -19,13 +19,13 @@ void ParticleManager::init() {
     shade_mode = SHADE_PARTICLE;
     skybox_id = parent->skybox.textureID;
 
-    int nx = 20;
+    int nx = 30;
     int ny = 30;
-    int nz = 20;
+    int nz = 30;
 
     float d = particle_radius * 2;
     for (int x = 0; x < nx; ++x) {
-        for (int y = 3 / d; y < 3 / d + ny; ++y) {
+        for (int y = 1 / d; y < 1 / d + ny; ++y) {
             for (int z = 0; z < nz; ++z) {
                 Particle par;
                 par.p = vec3((x + 0.5 - nx * 0.5) * d, y * d, (z + 0.5 - nz * 0.5) * d);
@@ -47,23 +47,23 @@ void ParticleManager::init() {
     ground.normal = glm::vec3(0, 1, 0);
 
     Plane side0; // RIGHT
-    side0.point = glm::vec3(2, 0, 0);
+    side0.point = glm::vec3(5, 0, 0);
     side0.normal = glm::vec3(1, 0, 0);
 
     Plane side1; //BACK
-    side1.point = glm::vec3(0, 0, 1);
+    side1.point = glm::vec3(0, 0, 5);
     side1.normal = glm::vec3(0, 0, 2);
 
     Plane side2; //LEFT
-    side2.point = glm::vec3(-2, 0, 0);
+    side2.point = glm::vec3(-10, 0, 0);
     side2.normal = glm::vec3(1, 0, 0);
 
     Plane side3; // BACK
-    side3.point = glm::vec3(0, 0, -1);
+    side3.point = glm::vec3(0, 0, -5);
     side3.normal = glm::vec3(0, 0, 1);
 
     Plane side4; // TOP
-    side4.point = glm::vec3(0, 5, 0);
+    side4.point = glm::vec3(0, 10, 0);
     side4.normal = glm::vec3(0, 1, 0);
     planes.push_back(ground);
     planes.push_back(side0);
@@ -244,6 +244,8 @@ void ParticleManager::reset() {
         par->p = *pos;
         par->pred_p = glm::dvec3();
         par->v = glm::dvec3();
+        par->num_neighbors = 0;
+        par->lambda = 0;
         ++par;
         ++pos;
     }

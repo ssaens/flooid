@@ -31,7 +31,7 @@ void Application::init() {
     GLint lightColorLoc = glGetUniformLocation(model_shader.program, "light_color");
     glUniform3f(lightColorLoc, light.color.r, light.color.g, light.color.b);
     
-    glm::vec3 offset(-0.5, -0.5, 0.5);
+    glm::vec3 offset(-6, -0.5, 0);
     test_model.set_offset(offset);
     test_model.load("obj/bunny.obj");
 

@@ -2,25 +2,25 @@
 
 #define DELTA_T 0.004f
 #define PI 3.14159265359f
-#define SOLVER_ITERS 4
-#define KERNEL_RADIUS 0.1001f
+#define SOLVER_ITERS 3
+#define KERNEL_RADIUS 0.106f
 #define EPS_T 600.f
 #define REST_DENSITY 6378.f
-#define PRESSURE_STRENGTH 0.000001f
-#define PRESSURE_POW 4.f;
 #include "CudaPBDSolver.cuh"
 
-const float VISCOSITY = 0.01;
-
+const int PRESSURE_POW = 4;
+const float VISCOSITY = 0.005;
 const float SURFACE_OFFSET = 0.000001;
+const float PRESSURE_STRENGTH =  0.0001f;
+
 
 using namespace glm;
 
-__device__ inline float poly6(glm::vec3 r_ij, float h);
+__device__ float poly6(glm::vec3 r_ij, float h);
 
-__device__ inline float spiky(glm::vec3 r_ij, float h);
+__device__ float spiky(glm::vec3 r_ij, float h);
 
-__device__ inline glm::vec3 spiky_grad(glm::vec3 r_ij, float h);
+__device__ glm::vec3 spiky_grad(glm::vec3 r_ij, float h);
 
 __device__ float rho_i(Particle *p_i, Particle *particles);
 
@@ -61,27 +61,36 @@ __global__ void run_solver(Particle *particles, int n, Triangle *triangles, int 
     Particle &p = particles[index];
 
     for (int i = 0; i < SOLVER_ITERS; ++i) {
-        __syncthreads();
         p.lambda = lambda_i(&p, particles);
+        p.collided = false;
         __syncthreads();
-
         p.dp = delta_p(&p, particles);
-        p.pred_p += p.dp;
         for (int i = 0; i < num_triangles; ++i) {
             triangle_collide(triangles[i], p);
         }
         for (int i = 0; i < num_planes; ++i) {
             plane_collide(planes[i], p);
         }
+        p.pred_p += p.dp;
+        __syncthreads();
     }
 
-    if (!p.collided)
-        p.v = (1.f / DELTA_T) * (p.pred_p - p.p);
+    for (int i = 0; i < num_triangles; ++i) {
+        triangle_collide(triangles[i], p);
+    }
+    for (int i = 0; i < num_planes; ++i) {
+        plane_collide(planes[i], p);
+    }
+    // if (!p.collided)
+    p.v = (1.f / DELTA_T) * (p.pred_p - p.p);
+    if (glm::length(p.v) > 5) {
+        p.v = glm::normalize(p.v) * 5.f;
+    }
     __syncthreads();
 
     p.f += f_vorticity(&p, particles);
     p.v = XSPH_vel(&p, particles);
-    p.collided = false;
+
     p.p = p.pred_p;
     p.num_neighbors = 0;
 }
@@ -153,6 +162,9 @@ __device__ glm::vec3 delta_p(Particle *p_i, Particle *particles) {
     for (int i = 0; i < p_i->num_neighbors; ++i) {
         int n = p_i->neighborhood[i];
         Particle *p_j = &particles[n];
+        glm::vec3 dq(0.03, 0, 0);
+        double base = poly6(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS) / poly6(dq, KERNEL_RADIUS);
+        s_corr = -PRESSURE_STRENGTH * pow(base, PRESSURE_POW);
         s_corr = 0.001;
         glm::vec3 b = spiky_grad(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS);
         float a = (p_j->lambda + p_i->lambda + s_corr);
@@ -193,7 +205,7 @@ __device__ glm::vec3 XSPH_vel(Particle *p_i, Particle *particles) {
         int n = p_i->neighborhood[i];
         Particle *p_j = &particles[n];
         glm::vec3 v_ij = p_j->v - p_i->v;
-        v += v_ij * poly6(p_i->v - p_j->v, KERNEL_RADIUS);
+        v += v_ij * poly6(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS);
     }
     return p_i->v + VISCOSITY * v;
 }
@@ -226,7 +238,8 @@ __device__ void triangle_collide(Triangle &t, Particle &p) {
         }
         p.pred_p = tangent;
         p.collided = true;
-        p.v = glm::reflect(p.v, t.n) * 0.5f;
+        // p.v = glm::reflect(p.v, t.n) * 0.5f;
+        p.v = glm::vec3();
     }
 }
 
@@ -243,6 +256,7 @@ __device__ void plane_collide(Plane &p, Particle &par) {
         }
         glm::vec3 proj_point = par.pred_p - p.normal * dist;
         par.pred_p = proj_point;
-        par.v = glm::reflect(-par.v, p.normal);
+        // par.v = glm::reflect(-par.v, p.normal);
+        par.v = glm::vec3();          
     }
 }
