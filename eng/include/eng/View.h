@@ -33,6 +33,7 @@ namespace eng {
         static bool HDPI;
 
         static int framecount;
+        static int render_step;
         static float sys_last;
         static float sys_curr;
 

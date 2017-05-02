@@ -1,9 +1,14 @@
 //
 // Created by Dillon Yao on 4/26/17.
 //
+#define OUTPUT_ANIMATION 1
 
 #include "eng/View.h"
 #include <iostream>
+
+#if OUTPUT_ANIMATION
+#include <opencv2/opencv.hpp>
+#endif
 
 const int DEFAULT_WIDTH = 960;
 const int DEFAULT_HEIGHT = 600;
@@ -17,6 +22,7 @@ namespace eng {
     Renderer *View::renderer = nullptr;
 
     int View::framecount = 0;
+    int View::render_step = 3;
     float View::sys_last;
     float View::sys_curr;
 
@@ -110,6 +116,20 @@ namespace eng {
         renderer->render();
 
         glfwSwapBuffers(window);
+
+        if (framecount / render_step >= 300) {
+            return;
+        } else if (framecount % render_step == 0) {
+            #if OUTPUT_ANIMATION
+            cv::Mat3b image(height, width);
+            glReadPixels(0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, image.data);
+            cv::flip(image, image, 0);
+            char fn[512];
+            sprintf(fn, "result/%04d.png", framecount/render_step);
+            cv::imwrite(fn, image);
+            #endif
+        }
+        framecount++;
     }
 
     void View::set_renderer(Renderer *renderer) {

@@ -18,7 +18,7 @@ void Application::init() {
     last_x = screen_w / 2;
     last_y = screen_h / 2;
     first_mouse = true;
-    light.pos = glm::vec3(3, 3, 0);
+    light.pos = glm::vec3(-2.5, 7, 0);
     light.color = glm::vec3(1, 1, 1);
     light_mesh = generate_cube_mesh(.2);
     skybox.load_cube_map(faces);

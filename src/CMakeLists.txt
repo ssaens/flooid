@@ -64,6 +64,7 @@ include_directories(
         ${GLEW_INCLUDE_DIRS}
         ${GLFW_INCLUDE_DIRS}
         ${eng_INCLUDE_DIRS}
+        ${OpenCV_INCLUDE_DIRS}
         ${FREETYPE_INCLUDE_DIRS}
 )
 
@@ -90,6 +91,7 @@ target_link_libraries(flooid2
         glfw ${GLFW_LIBRARIES}
         ${OPENGL_LIBRARIES}
         ${FREETYPE_LIBRARIES}
+        ${OpenCV_LIBS}
 )
 
 
