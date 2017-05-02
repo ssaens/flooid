@@ -10,6 +10,7 @@ Application::Application() {}
 Application::~Application() {}
 
 void Application::init() {
+    // IMPORTANT LOAD ALL RESOURCES BEFORE LOADING THE PARTICLE MANAGER!
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_CULL_FACE);
@@ -24,17 +25,18 @@ void Application::init() {
     light_mesh = generate_cube_mesh(.2);
     skybox.load_cube_map(faces);
 
-    pm.set_parent(this);
+    glm::vec3 offset(-0.5, -0.5, 0.5);
+    test_model.set_offset(offset);
+    test_model.load("obj/cube.obj");
 
+    pm.set_parent(this);
     pm.init();
 
     for (int i = 0; i < 1024; ++i) {
         keys[i] = 0;
     }
 
-    glm::vec3 offset(-0.5, -0.5, 0.5);
-    test_model.set_offset(offset);
-    test_model.load("obj/cube.obj");
+    printf("Application successfully initialized\n");
 }
 
 void Application::render() {

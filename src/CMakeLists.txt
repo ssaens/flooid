@@ -10,15 +10,11 @@ set(FLOOID2_SOURCE
         scene/Mesh.cpp
         scene/Model.cpp
 
-        PBD/ParticleManager.cpp
-        PBD/PBDSolver.cpp
-
         scene/Scene.cpp
         Skybox/Skybox.cpp)
 
 # flooid header
 set(FLOOID2_HEADER
-
         common.h
         util.h
 
@@ -31,8 +27,6 @@ set(FLOOID2_HEADER
 
         PBD/Particle.h
         PBD/ParticleManager.h
-        PBD/PBDSolver.h
-        PBD/kernels.h
 
         scene/Light.h
         scene/Scene.h
@@ -40,11 +34,33 @@ set(FLOOID2_HEADER
         scene/triangle.h
         Skybox/Skybox.h)
 
+set(CUDA_SOURCE_FILES
+    PBD/ParticleManager.cu
+    cuda/CudaPBDSolver.cu
+    cuda/CudaPBDSolver.cuh
+)
+
+set(CUDA_NVCC_FLAGS
+        ${CUDA_NVCC_FLAGS}
+        -std=c++11
+        -O3 -gencode arch=compute_30,code=sm_30)
+
+set(CUDA_SEPARABLE_COMPILATION ON)
+set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+set(CUDA_HOST_COMPILER g++)
+set(CUDA_VERBOSE_BUILD OFF)
+
+cuda_add_executable(flooid2
+    ${FLOOID2_SOURCE}
+    ${FLOOID2_HEADER}
+    ${CUDA_SOURCE_FILES}
+)
 
 #-------------------------------------------------------------------------------
 # Set include directories
 #-------------------------------------------------------------------------------
 include_directories(
+        ${CUDA_INCLUDE_DIRS}
         ${GLEW_INCLUDE_DIRS}
         ${GLFW_INCLUDE_DIRS}
         ${eng_INCLUDE_DIRS}
@@ -64,18 +80,18 @@ link_directories(
 #-------------------------------------------------------------------------------
 # Add executable
 #-------------------------------------------------------------------------------
-add_executable(flooid2
-        ${FLOOID2_SOURCE}
-        ${FLOOID2_HEADER}
-        )
+#add_executable(flooid2
+#        
+#)
 
 target_link_libraries(flooid2
         eng ${eng_LIBRARIES}
         glew ${GLEW_LIBRARIES}
         glfw ${GLFW_LIBRARIES}
-        ${OPengL_LIBRARIES}
+        ${OPENGL_LIBRARIES}
         ${FREETYPE_LIBRARIES}
-        )
+)
+
 
 #-------------------------------------------------------------------------------
 # Platform-specific configurations for target

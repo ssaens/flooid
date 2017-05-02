@@ -152,6 +152,7 @@ endif(WIN32)
 # Required packages
 find_package(OpenGL REQUIRED)
 find_package(Freetype REQUIRED)
+find_package(CUDA 8.0 REQUIRED)
 
 # eng
 if(BUILD_LIB_eng)

@@ -161,7 +161,7 @@ GLint TextureFromFile(const char* path, string directory) {
     return textureID;
 }
 
-void Model::set_offset(vec3 offset) {
+void Model::set_offset(glm::vec3 offset) {
     this->offset = offset;
 }
 

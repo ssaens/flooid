@@ -2,13 +2,14 @@
 // Created by Dillon Yao on 4/26/17.
 //
 
+
 #include <glm/gtc/type_ptr.hpp>
 #include "ParticleManager.h"
 #include "../util.h"
 #include "../display/Application.h"
-#include "../cuda/CudaPBDSolver.h"
+#include "../cuda/CudaPBDSolver.cuh"
 
-using namespace glm;
+#define M 512
 
 ParticleManager::ParticleManager() {}
 
@@ -18,20 +19,22 @@ void ParticleManager::init() {
     shade_mode = SHADE_PARTICLE;
     skybox_id = parent->skybox.textureID;
 
-    int nx = 15;
-    int ny = 15;
-    int nz = 15;
+    int nx = 20;
+    int ny = 20;
+    int nz = 20;
 
     float d = particle_radius * 2;
     for (int x = 0; x < nx; ++x) {
         for (int y = 3 / d; y < 3 / d + ny; ++y) {
             for (int z = 0; z < nz; ++z) {
                 Particle par;
-                par.p = dvec3((x + 0.5 - nx * 0.5) * d, y * d, (z + 0.5 - nz * 0.5) * d);
-                par.pred_p = glm::dvec3();
-                par.f = glm::dvec3();
-                par.v = glm::dvec3();
+                par.p = vec3((x + 0.5 - nx * 0.5) * d, y * d, (z + 0.5 - nz * 0.5) * d);
+                par.pred_p = glm::vec3();
+                par.f = glm::vec3();
+                par.v = glm::vec3();
                 par.m = PARTICLE_MASS;
+                par.num_neighbors = 0;
+                par.lambda = 0;
                 par.collided = false;
                 particles.push_back(par);
                 initial_positions.push_back(par.p);
@@ -39,12 +42,29 @@ void ParticleManager::init() {
         }
     }
 
-    Plane ground(glm::dvec3(0, 0, 0), glm::dvec3(0, 1, 0), 0);
-    Plane side0(glm::dvec3(1, 0, 0), glm::dvec3(1, 0, 0), 0);
-    Plane side1(glm::dvec3(0, 0, 1), glm::dvec3(0, 0, 1), 0);
-    Plane side2(glm::dvec3(-2, 0, 0), glm::dvec3(1, 0, 0), 0);
-    Plane side3(glm::dvec3(0, 0, -1), glm::dvec3(0, 0, 1), 0);
-    Plane side4(glm::dvec3(0, 5, 0), glm::dvec3(0, 1, 0), 0);
+    Plane ground;
+    ground.point = glm::vec3(0, 0, 0);
+    ground.normal = glm::vec3(0, 1, 0);
+
+    Plane side0;
+    side0.point = glm::vec3(1, 0, 0);
+    side0.normal = glm::vec3(1, 0, 0);
+
+    Plane side1;
+    side1.point = glm::vec3(0, 0, 1);
+    side1.normal = glm::vec3(0, 0, 1);
+
+    Plane side2;
+    side2.point = glm::vec3(-2, 0, 0);
+    side2.normal = glm::vec3(1, 0, 0);
+
+    Plane side3;
+    side3.point = glm::vec3(0, 0, -1);
+    side3.normal = glm::vec3(0, 0, 1);
+
+    Plane side4;
+    side4.point = glm::vec3(0, 5, 0);
+    side4.normal = glm::vec3(0, 1, 0);
     planes.push_back(ground);
     planes.push_back(side0);
     planes.push_back(side1);
@@ -100,7 +120,7 @@ void ParticleManager::init() {
     cudaMalloc((void **) &d_triangles, triangles->size() * sizeof(Triangle));
     cudaMalloc((void **) &d_planes, planes.size() * sizeof(Plane));
 
-    cudaMemcpy(d_planes, &planes[0], particles.size() * sizeof(Plane), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_planes, &planes[0], planes.size() * sizeof(Plane), cudaMemcpyHostToDevice);
     cudaMemcpy(d_triangles, &triangles->data()[0], triangles->size() * sizeof(Triangle), cudaMemcpyHostToDevice);
 }
 
@@ -117,13 +137,12 @@ void ParticleManager::render(Camera &c, mat4 &projection, mat4 &view) {
 }
 
 void ParticleManager::step(float dt) {
-    dt = DELTA_T;
-    spacial_map.clear();
-
     cudaMemcpy(d_particles, &particles[0], particles.size() * sizeof(Particle), cudaMemcpyHostToDevice);
-    seed_position(d_particles, particles.size());
+    seed_position<<<(particles.size() + M-1) / M, M>>>(d_particles, particles.size());
+    cudaThreadSynchronize();    
     cudaMemcpy(&particles[0], d_particles, particles.size() * sizeof(Particle), cudaMemcpyDeviceToHost);
 
+    spacial_map.clear();
     for (int i = 0; i < particles.size(); ++i) {
         int hash = hash_bin(bin(particles[i]));
         if (spacial_map.find(hash) == spacial_map.end()) {
@@ -134,13 +153,14 @@ void ParticleManager::step(float dt) {
 
     for (Particle &p : particles) {
         for (int n : this->neighborhood(p)) {
-            if (p.num_neighbors != 20)
-                p.neighborhood[++p.num_neighbors] = n;
+            if (p.num_neighbors < 50)
+                p.neighborhood[p.num_neighbors++] = n;
         }
     }
 
     cudaMemcpy(d_particles, &particles[0], particles.size() * sizeof(Particle), cudaMemcpyHostToDevice);
-    run_solver(d_particles, particles.size(), d_triangles, triangles->size(), d_planes, planes.size());
+    run_solver<<<(particles.size() + M-1) / M, M>>>(d_particles, particles.size(), d_triangles, triangles->size(), d_planes, planes.size());
+    cudaThreadSynchronize();
     cudaMemcpy(&particles[0], d_particles, particles.size() * sizeof(Particle), cudaMemcpyDeviceToHost);
 }
 
@@ -158,18 +178,18 @@ int ParticleManager::hash_bin(glm::ivec3 pos) {
 
 std::vector<int> ParticleManager::neighborhood(Particle& p) {
     std::vector<int> neighbors;
-    ivec3 original_bin = this->bin(p);
+    glm::ivec3 original_bin = this->bin(p);
     for (int i = -1; i <= 1; ++i) {
         for (int j = -1; j <= 1; ++j) {
             for (int k = -1; k <= 1; ++k) {
-                glm::ivec3 bin = original_bin + ivec3(i, j, k);
+                glm::ivec3 bin = original_bin + glm::ivec3(i, j, k);
                 int hash = hash_bin(bin);
                 if (spacial_map.find(hash) == spacial_map.end()) {
                     continue;
                 }
                 for (int n : *spacial_map[hash]) {
-                    Particle &neighbor = particles[n]
-                    if (neighbor != p && glm::length(neighbor.pred_p - p.pred_p) <= KERNEL_RADIUS) {
+                    Particle &neighbor = particles[n];
+                    if (&neighbor != &p && glm::length(neighbor.pred_p - p.pred_p) <= KERNEL_RADIUS) {
                         neighbors.push_back(n);
                     }
                 }
@@ -183,7 +203,7 @@ void ParticleManager::next_mode() {
     shade_mode = (shade_mode + 1) % SHADERS_TOTAL;
 }
 
-void ParticleManager::bind_shader(mat4 &projection, mat4 &view, vec3 &view_pos) {
+void ParticleManager::bind_shader(glm::mat4 &projection, glm::mat4 &view, glm::vec3 &view_pos) {
     switch(shade_mode) {
         case SHADE_PARTICLE: {
             particle_shader.use();

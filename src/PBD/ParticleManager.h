@@ -12,15 +12,12 @@
 #include "../common.h"
 #include "../scene/Shader.h"
 #include <map>
-#include "PBDSolver.h"
 #include "../scene/Plane.h"
 #include "../scene/Mesh.h"
 #include "../display/Camera.h"
 
 
 class Application;
-
-using namespace glm;
 
 enum {
     SHADE_PARTICLE,

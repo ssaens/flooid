@@ -32,6 +32,7 @@ struct Shader {
         std::ifstream vShaderFile;
         std::ifstream fShaderFile;
         // ensures ifstream objects can throw exceptions:
+
         vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
         fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
         try {
@@ -39,6 +40,7 @@ struct Shader {
             vShaderFile.open(vertex_path);
             fShaderFile.open(frag_path);
             std::stringstream vShaderStream, fShaderStream;
+
             // Read file's buffer contents into streams
             vShaderStream << vShaderFile.rdbuf();
             fShaderStream << fShaderFile.rdbuf();
@@ -53,6 +55,7 @@ struct Shader {
             std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
             exit(1);
         }
+
         const GLchar *vShaderCode = vertexCode.c_str();
         const GLchar *fShaderCode = fragmentCode.c_str();
         // 2. Compile shaders
