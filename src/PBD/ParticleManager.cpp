@@ -42,7 +42,7 @@ void ParticleManager::init() {
     Plane ground(glm::dvec3(0, 0, 0), glm::dvec3(0, 1, 0), 0);
     Plane side0(glm::dvec3(2, 0, 0), glm::dvec3(1, 0, 0), 0);
     Plane side1(glm::dvec3(0, 0, 1), glm::dvec3(0, 0, 1), 0);
-    Plane side2(glm::dvec3(-2, 0, 0), glm::dvec3(1, 0, 0), 0);
+    Plane side2(glm::dvec3(-1, 0, 0), glm::dvec3(1, 0, 0), 0);
     Plane side3(glm::dvec3(0, 0, -1), glm::dvec3(0, 0, 1), 0);
     Plane side4(glm::dvec3(0, 5, 0), glm::dvec3(0, 1, 0), 0);
     planes.push_back(ground);
