@@ -19,9 +19,9 @@ void ParticleManager::init() {
     shade_mode = SHADE_PARTICLE;
     skybox_id = parent->skybox.textureID;
 
-    int nx = 30;
-    int ny = 30;
-    int nz = 30;
+    int nx = 40;
+    int ny = 40;
+    int nz = 40;
 
     float d = particle_radius * 2;
     for (int x = 0; x < nx; ++x) {
@@ -52,7 +52,7 @@ void ParticleManager::init() {
 
     Plane side1; //BACK
     side1.point = glm::vec3(0, 0, 5);
-    side1.normal = glm::vec3(0, 0, 2);
+    side1.normal = glm::vec3(0, 0, 1);
 
     Plane side2; //LEFT
     side2.point = glm::vec3(-10, 0, 0);

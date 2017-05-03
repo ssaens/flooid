@@ -71,7 +71,11 @@ __global__ void run_solver(Particle *particles, int n, Triangle *triangles, int 
         for (int i = 0; i < num_planes; ++i) {
             plane_collide(planes[i], p);
         }
-        p.pred_p += p.dp;
+        glm::vec3 displacement = p.pred_p + p.dp - p.p;
+        if (glm::length(displacement) > 0.1f) {
+            displacement = glm::normalize(displacement) * 0.1f;
+        }
+        p.pred_p = p.p + displacement;
         __syncthreads();
     }
 
@@ -83,12 +87,12 @@ __global__ void run_solver(Particle *particles, int n, Triangle *triangles, int 
     }
     // if (!p.collided)
     p.v = (1.f / DELTA_T) * (p.pred_p - p.p);
-    if (glm::length(p.v) > 5) {
-        p.v = glm::normalize(p.v) * 5.f;
-    }
+    // if (glm::length(p.v) > 5) {
+    //     p.v = glm::normalize(p.v) * 5.f;
+    // }
     __syncthreads();
 
-    p.f += f_vorticity(&p, particles);
+    // p.f += f_vorticity(&p, particles);
     p.v = XSPH_vel(&p, particles);
 
     p.p = p.pred_p;
@@ -164,7 +168,7 @@ __device__ glm::vec3 delta_p(Particle *p_i, Particle *particles) {
         Particle *p_j = &particles[n];
         glm::vec3 dq(0.03, 0, 0);
         double base = poly6(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS) / poly6(dq, KERNEL_RADIUS);
-        s_corr = -PRESSURE_STRENGTH * pow(base, PRESSURE_POW);
+        // s_corr = -PRESSURE_STRENGTH * pow(base, PRESSURE_POW);
         s_corr = 0.001;
         glm::vec3 b = spiky_grad(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS);
         float a = (p_j->lambda + p_i->lambda + s_corr);
@@ -204,8 +208,9 @@ __device__ glm::vec3 XSPH_vel(Particle *p_i, Particle *particles) {
     for (int i = 0; i < p_i->num_neighbors; ++i) {
         int n = p_i->neighborhood[i];
         Particle *p_j = &particles[n];
+        float rho_j = rho_i(p_j, particles);
         glm::vec3 v_ij = p_j->v - p_i->v;
-        v += v_ij * poly6(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS);
+        v += v_ij * poly6(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS) * (1.f/max(rho_j, 100.f));
     }
     return p_i->v + VISCOSITY * v;
 }
