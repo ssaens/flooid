@@ -39,7 +39,7 @@ const float NCLIP      =  0.1f;
 const float FCLIP      =  100.f;
 const float VDIST      =  10.f;
 
-const glm::vec3 DEFAULT_POS = glm::vec3(-2.5f, 7.f, 15.f);
+const glm::vec3 DEFAULT_POS = glm::vec3(3.f, 5.f, 12.f);
 const glm::vec3 DEFAULT_UP = glm::vec3(0.f, 1.f, 0.f);
 const glm::vec3 DEFAULT_FRONT = glm::vec3(0.f, 0.f, -1.f);
 

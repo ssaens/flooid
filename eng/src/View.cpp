@@ -1,7 +1,7 @@
 //
 // Created by Dillon Yao on 4/26/17.
 //
-#define OUTPUT_ANIMATION 0
+#define OUTPUT_ANIMATION 1
 
 #include "eng/View.h"
 #include <iostream>

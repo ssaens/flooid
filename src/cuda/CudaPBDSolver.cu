@@ -5,13 +5,13 @@
 #define SOLVER_ITERS 3
 #define KERNEL_RADIUS 0.106f
 #define EPS_T 600.f
-#define REST_DENSITY 8000.f
+#define REST_DENSITY 6378.f
 #include "CudaPBDSolver.cuh"
 
 const int PRESSURE_POW = 4;
 const float VISCOSITY = 0.01;
 const float SURFACE_OFFSET = 0.000001;
-const float PRESSURE_STRENGTH =  0.001f;
+const float PRESSURE_STRENGTH =  0.0005f;
 const float PRESSURE_EPS = 1e-2f;
 const float MAX_VORT_ADJ = 0.0001f;
 

@@ -18,22 +18,22 @@ void Application::init() {
     last_x = screen_w / 2;
     last_y = screen_h / 2;
     first_mouse = true;
-    light.pos = glm::vec3(-2.5, 7, 0);
+    light.pos = glm::vec3(0, 5, 0);
     light.color = glm::vec3(1, 1, 1);
     light_mesh = generate_cube_mesh(.2);
     skybox.load_cube_map(faces);
 
     light_shader.load("src/shaders/basic.vert", "src/shaders/basic.frag");
-    model_shader.load("src/shaders/diffuse.vert", "src/shaders/diffuse.frag");
-    model_shader.use();
-    GLint lightPosLoc = glGetUniformLocation(model_shader.program, "light_pos");
-    glUniform3f(lightPosLoc, light.pos.x, light.pos.y, light.pos.z);
-    GLint lightColorLoc = glGetUniformLocation(model_shader.program, "light_color");
-    glUniform3f(lightColorLoc, light.color.r, light.color.g, light.color.b);
+    // model_shader.load("src/shaders/diffuse.vert", "src/shaders/diffuse.frag");
+    // model_shader.use();
+    // GLint lightPosLoc = glGetUniformLocation(model_shader.program, "light_pos");
+    // glUniform3f(lightPosLoc, light.pos.x, light.pos.y, light.pos.z);
+    // GLint lightColorLoc = glGetUniformLocation(model_shader.program, "light_color");
+    // glUniform3f(lightColorLoc, light.color.r, light.color.g, light.color.b);
     
-    glm::vec3 offset(-6, -0.5, 0);
-    test_model.set_offset(offset);
-    test_model.load("obj/bunny.obj");
+    // glm::vec3 offset(-6, -0.5, 0);
+    // test_model.set_offset(offset);
+    // test_model.load("obj/bunny.obj");
 
     pm.set_parent(this);
     pm.init();
@@ -50,11 +50,11 @@ void Application::render() {
     glm::mat4 view = camera.get_view_matrix();
     glm::mat4 model;
 
-    model_shader.use();
-    glUniformMatrix4fv(glGetUniformLocation(model_shader.program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-    glUniformMatrix4fv(glGetUniformLocation(model_shader.program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-    glUniform3f(glGetUniformLocation(model_shader.program, "view_pos"), camera.pos.x, camera.pos.y, camera.pos.z);
-    test_model.render(model_shader);
+    // model_shader.use();
+    // glUniformMatrix4fv(glGetUniformLocation(model_shader.program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    // glUniformMatrix4fv(glGetUniformLocation(model_shader.program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+    // glUniform3f(glGetUniformLocation(model_shader.program, "view_pos"), camera.pos.x, camera.pos.y, camera.pos.z);
+    // test_model.render(model_shader);
 
     light_shader.use();
     glUniformMatrix4fv(glGetUniformLocation(light_shader.program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
