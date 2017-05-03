@@ -12,7 +12,6 @@ struct Plane {
             point(point), normal(normal), friction(friction) {}
 
     void collide(Particle& p);
-    void render();
 
     glm::vec3 point;
     glm::vec3 normal;

@@ -18,10 +18,6 @@ void Plane::collide(Particle& p) {
         }
         glm::vec3 proj_point = p.pred_p - this->normal * dist;
         p.pred_p = proj_point;
-        p.v = glm::reflect(-p.v, normal);
+        p.v = glm::vec3();
     }
-}
-
-void Plane::render() {
-
 }

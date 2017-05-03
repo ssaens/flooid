@@ -17,21 +17,22 @@ void ParticleManager::init() {
     shade_mode = SHADE_PARTICLE;
     skybox_id = parent->skybox.textureID;
 
-    int nx = 15;
+    int nx = 10;
     int ny = 15;
-    int nz = 15;
+    int nz = 10;
 
     float d = particle_radius * 2;
     for (int x = 0; x < nx; ++x) {
-        for (int y = 3 / d; y < 3 / d + ny; ++y) {
+        for (int y = 1 / d; y < 1 / d + ny; ++y) {
             for (int z = 0; z < nz; ++z) {
                 Particle par;
                 par.p = dvec3((x + 0.5 - nx * 0.5) * d, y * d, (z + 0.5 - nz * 0.5) * d);
                 par.pred_p = glm::dvec3();
-                par.f = glm::dvec3();
                 par.v = glm::dvec3();
                 par.m = PARTICLE_MASS;
-                par.collided = false;
+                par.rho = 0;
+                par.lambda = 0;
+                par.w = glm::vec3();
                 particles.push_back(par);
                 initial_positions.push_back(par.p);
             }
@@ -39,7 +40,7 @@ void ParticleManager::init() {
     }
 
     Plane ground(glm::dvec3(0, 0, 0), glm::dvec3(0, 1, 0), 0);
-    Plane side0(glm::dvec3(1, 0, 0), glm::dvec3(1, 0, 0), 0);
+    Plane side0(glm::dvec3(2, 0, 0), glm::dvec3(1, 0, 0), 0);
     Plane side1(glm::dvec3(0, 0, 1), glm::dvec3(0, 0, 1), 0);
     Plane side2(glm::dvec3(-2, 0, 0), glm::dvec3(1, 0, 0), 0);
     Plane side3(glm::dvec3(0, 0, -1), glm::dvec3(0, 0, 1), 0);
@@ -109,15 +110,14 @@ void ParticleManager::render(Camera &c, mat4 &projection, mat4 &view) {
 
 void ParticleManager::step(float dt) {
     dt = DELTA_T;
-    spacial_map.clear();
 
     for (Particle &p : particles) {
-        p.f = glm::vec3(0);
-        for (auto accel : accels) {
-            p.f += accel * p.m;
-        }
-        p.v = p.v + p.f * (1.f / p.m) * dt;
+        p.v = p.v + ACCEL_GRAVITY * dt;
         p.pred_p = p.p + p.v * dt;
+    }
+
+    spacial_map.clear();
+    for (Particle &p : particles) {
         int hash = this->hash_bin(this->bin(p));
         if (spacial_map.find(hash) == spacial_map.end()) {
             spacial_map[hash] = new std::vector<Particle *>;
@@ -138,20 +138,31 @@ void ParticleManager::step(float dt) {
             p_i.dp = PBDSolver::getPBDsolver()->delta_p(&p_i, p_i.neighborhood);
         }
         for (Particle &p_i : particles) {
-            p_i.pred_p += p_i.dp;
-            parent->test_model.collide(p_i);
+            // parent->test_model.collide(p_i);
             for (Plane &plane : planes)
                 plane.collide(p_i);
+            glm::vec3 displacement = p_i.pred_p + p_i.dp - p_i.p;
+            if (glm::length(displacement) > 0.1f) {
+                displacement = glm::normalize(displacement) * 0.1f;
+            }
+            p_i.pred_p = p_i.p + displacement;  
         }
+    }
+
+    for (Particle &p : particles) {
+        // parent->test_model.collide(p);
+        for (Plane &plane : planes)
+            plane.collide(p);
     }
 
     for (int i = 0; i < particles.size(); ++i) {
         Particle &p = particles[i];
-        if (!p.collided)
-            p.v = (1.f / dt) * (p.pred_p - p.p);
-        p.f += PBDSolver::getPBDsolver()->f_vorticity(&p, p.neighborhood);
-        p.v = PBDSolver::getPBDsolver()->XSPH_vel(&p, p.neighborhood);
-        p.collided = false;
+        p.v = (1.f / dt) * (p.pred_p - p.p);
+        p.w = PBDSolver::getPBDsolver()->vorticity(&p, p.neighborhood);
+        p.v = PBDSolver::getPBDsolver()->vort_and_XSPH_vel(&p, p.neighborhood);
+        if (glm::length(p.v) > 7.f) {
+            p.v = glm::normalize(p.v) * 7.f;
+        }
         p.p = p.pred_p;
     }
 }

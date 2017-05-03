@@ -16,13 +16,11 @@ struct Particle {
     vec3 pred_p;
     vec3 dp;
     vec3 v;
-    vec3 f;
 
-    GLfloat m;
-    GLfloat rho;
-    GLfloat lambda;
-
-    bool collided;
+    float m;
+    float rho;
+    float lambda;
+    glm::vec3 w;
 
     std::vector<struct Particle *> neighborhood;
 };

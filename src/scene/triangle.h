@@ -46,7 +46,6 @@ public:
     			tangent -= n * SURFACE_OFFSET;
     		}
     		p.pred_p = tangent;
-			p.collided = true;
 			p.v = glm::reflect(p.v, n) * 0.5f;
     	}
 	}

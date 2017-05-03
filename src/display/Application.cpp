@@ -19,10 +19,14 @@ void Application::init() {
     last_x = screen_w / 2;
     last_y = screen_h / 2;
     first_mouse = true;
-    light.pos = glm::vec3(3, 3, 0);
+    light.pos = glm::vec3(0, 3, 2);
     light.color = glm::vec3(1, 1, 1);
     light_mesh = generate_cube_mesh(.2);
     skybox.load_cube_map(faces);
+
+    // glm::vec3 offset(-0.5, -0.5, 0.5);
+    // test_model.set_offset(offset);
+    // test_model.load("obj/cube.obj");
 
     pm.set_parent(this);
 
@@ -31,10 +35,6 @@ void Application::init() {
     for (int i = 0; i < 1024; ++i) {
         keys[i] = 0;
     }
-
-    glm::vec3 offset(-0.5, -0.5, 0.5);
-    test_model.set_offset(offset);
-    test_model.load("obj/cube.obj");
 }
 
 void Application::render() {
@@ -51,9 +51,9 @@ void Application::render() {
     glUniformMatrix4fv(glGetUniformLocation(light_shader.program, "model"), 1, GL_FALSE, glm::value_ptr(model));
     light_mesh.render(light_shader);
 
-    model = glm::mat4();
-    glUniformMatrix4fv(glGetUniformLocation(light_shader.program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-    test_model.render(light_shader);
+    // model = glm::mat4();
+    // glUniformMatrix4fv(glGetUniformLocation(light_shader.program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    // test_model.render(light_shader);
 
     skybox.render(view, projection);
     
