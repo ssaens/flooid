@@ -13,10 +13,11 @@ struct Particle {
     glm::vec3 pred_p;
     glm::vec3 dp;
     glm::vec3 v;
-    glm::vec3 f;
 
     float m;
     float lambda;
+    float rho;
+    glm::vec3 w;
 
     bool collided;
 

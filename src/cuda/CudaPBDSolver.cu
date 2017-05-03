@@ -5,41 +5,30 @@
 #define SOLVER_ITERS 3
 #define KERNEL_RADIUS 0.106f
 #define EPS_T 600.f
-#define REST_DENSITY 6378.f
+#define REST_DENSITY 8000.f
 #include "CudaPBDSolver.cuh"
 
 const int PRESSURE_POW = 4;
-const float VISCOSITY = 0.005;
+const float VISCOSITY = 0.05;
 const float SURFACE_OFFSET = 0.000001;
-const float PRESSURE_STRENGTH =  0.0001f;
-
+const float PRESSURE_STRENGTH =  0.0005f;
+const float PRESSURE_EPS = 75;
+const float MAX_VORT_ADJ = 0.0001f;
 
 using namespace glm;
 
 __device__ float poly6(glm::vec3 r_ij, float h);
-
 __device__ float spiky(glm::vec3 r_ij, float h);
-
 __device__ glm::vec3 spiky_grad(glm::vec3 r_ij, float h);
 
 __device__ float rho_i(Particle *p_i, Particle *particles);
-
 __device__ float lambda_i(Particle *p_i, Particle *particles);
-
-__device__ float C_i(Particle *p_i, Particle *particles);
-
 __device__ glm::vec3 grad_k_Ci(Particle *p_k, Particle *p_i, Particle *particles);
-
 __device__ glm::vec3 delta_p(Particle *p_i, Particle *particles);
-
 __device__ glm::vec3 vorticity(Particle *p_i, Particle *particles);
-
-__device__ glm::vec3 f_vorticity(Particle *p_i, Particle *particles);
-
-__device__ glm::vec3 XSPH_vel(Particle *p_i, Particle *particles);
+__device__ glm::vec3 vort_and_XSPH_vel(Particle *p_i, Particle *particles);
 
 __device__ void triangle_collide(Triangle &t, Particle &p);
-
 __device__ void plane_collide(Plane &p, Particle &par);
 
 __global__ void seed_position(Particle *particles, int n) {
@@ -48,8 +37,7 @@ __global__ void seed_position(Particle *particles, int n) {
         return;
     }
     Particle &p = particles[index];
-    p.f = glm::vec3(0, -9.8f, 0) * p.m;
-    p.v = p.v + p.f * (1.f / p.m) * DELTA_T;
+    p.v = p.v + glm::vec3(0, -9.8f, 0) * DELTA_T;
     p.pred_p = p.p + p.v * DELTA_T;
 }
 
@@ -62,7 +50,6 @@ __global__ void run_solver(Particle *particles, int n, Triangle *triangles, int 
 
     for (int i = 0; i < SOLVER_ITERS; ++i) {
         p.lambda = lambda_i(&p, particles);
-        p.collided = false;
         __syncthreads();
         p.dp = delta_p(&p, particles);
         for (int i = 0; i < num_triangles; ++i) {
@@ -72,6 +59,11 @@ __global__ void run_solver(Particle *particles, int n, Triangle *triangles, int 
             plane_collide(planes[i], p);
         }
         p.pred_p += p.dp;
+        glm::vec3 displacement = p.pred_p + p.dp - p.p;
+        if (glm::length(displacement) > 0.1f) {
+            displacement = glm::normalize(displacement) * 0.1f;
+        }
+        p.pred_p = p.p + displacement;
         __syncthreads();
     }
 
@@ -81,15 +73,16 @@ __global__ void run_solver(Particle *particles, int n, Triangle *triangles, int 
     for (int i = 0; i < num_planes; ++i) {
         plane_collide(planes[i], p);
     }
-    // if (!p.collided)
+
     p.v = (1.f / DELTA_T) * (p.pred_p - p.p);
-    if (glm::length(p.v) > 5) {
-        p.v = glm::normalize(p.v) * 5.f;
-    }
+    __syncthreads();
+    p.w = vorticity(&p, particles);
     __syncthreads();
 
-    p.f += f_vorticity(&p, particles);
-    p.v = XSPH_vel(&p, particles);
+    p.v = vort_and_XSPH_vel(&p, particles);
+    // if (glm::length(p.v) > 5.f) {
+    //     p.v = glm::normalize(p.v) * 5.f;
+    // }
 
     p.p = p.pred_p;
     p.num_neighbors = 0;
@@ -97,23 +90,22 @@ __global__ void run_solver(Particle *particles, int n, Triangle *triangles, int 
 
 __device__ float poly6(glm::vec3 r_ij, float h) {
     float r = length(r_ij);
-    return 0 <= r && r <= h ? 315 / (64 * PI * pow(h, 9)) * pow(h * h - r * r, 3) : 0;
-}
-
-__device__ float spiky(glm::vec3 r_ij, float h) {
-    float r = length(r_ij);
-    return 0 <= r && r <= h ? 15 / (PI * pow(h, 6)) * pow(h - r, 3) : 0;
+    float out_term = h * h - r * r;
+    if (out_term < MAX_VORT_ADJ) {
+        return 0.f;
+    }
+    return 315.f / (64.f * PI * pow(h, 9)) * pow(out_term, 3);
 }
 
 __device__ glm::vec3 spiky_grad(glm::vec3 r_ij, float h) {
     float r = length(r_ij);
-    if (0 < r && r <= h) {
-        glm::vec3 d = normalize(r_ij);
-        float coeff = 45 / (PI * pow(h, 6)) * pow(h - r, 2);
-        return coeff * d;
-    } else {
+    float r_2 = r * r;
+    if ((r_2 >= h * h) || (r_2 <= MAX_VORT_ADJ)) {
         return glm::vec3();
     }
+    glm::vec3 d = normalize(r_ij);
+    float coeff = 45.f / (PI * pow(h, 6)) * pow(h - r, 2);
+    return coeff * d;
 }
 
 __device__ float rho_i(Particle *p_i, Particle *particles) {
@@ -123,23 +115,23 @@ __device__ float rho_i(Particle *p_i, Particle *particles) {
         Particle *p_j = &particles[n];
         rho += p_j->m * poly6(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS);
     }
+    p_i->rho = rho;
     return rho;
 }
 
 __device__ float lambda_i(Particle *p_i, Particle *particles) {
-    float lambda = 0;
+    float C_i = rho_i(p_i, particles) / REST_DENSITY - 1;
+    float grad_sum = 0;
+    glm::vec3 grad_k_ci;
+
     for (int i = 0; i < p_i->num_neighbors; ++i) {
         int n = p_i->neighborhood[i];
         Particle *p_k = &particles[n];
-        glm::vec3 grad_k_ci = grad_k_Ci(p_k, p_i, particles);
-        lambda += pow(length(grad_k_ci), 2);
+        grad_k_ci = grad_k_Ci(p_k, p_i, particles);
+        grad_sum += pow(glm::length(grad_k_ci), 2);
     }
-    lambda = -C_i(p_i, particles) * (1 / (lambda + EPS_T));
-    return lambda;
-}
-
-__device__ float C_i(Particle *p_i, Particle *particles) {
-    return rho_i(p_i, particles) / REST_DENSITY - 1;
+    // grad_sum += glm::dot(grad_k_ci, grad_k_ci);
+    return -C_i * (1 / (grad_sum + EPS_T));
 }
 
 __device__ glm::vec3 grad_k_Ci(Particle *p_k, Particle *p_i, Particle *particles) {
@@ -158,19 +150,23 @@ __device__ glm::vec3 grad_k_Ci(Particle *p_k, Particle *p_i, Particle *particles
 
 __device__ glm::vec3 delta_p(Particle *p_i, Particle *particles) {
     glm::vec3 delta_p;
-    float s_corr;
+    float s_corr = 0.f;
     for (int i = 0; i < p_i->num_neighbors; ++i) {
         int n = p_i->neighborhood[i];
         Particle *p_j = &particles[n];
-        glm::vec3 dq(0.03, 0, 0);
-        double base = poly6(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS) / poly6(dq, KERNEL_RADIUS);
+        glm::vec3 dq(0.03, 0.03, 0.03);
+        float inv_sqrt_3 = 0.57735f;
+        double base = poly6(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS) / poly6(inv_sqrt_3 * dq, KERNEL_RADIUS);
         s_corr = -PRESSURE_STRENGTH * pow(base, PRESSURE_POW);
-        s_corr = 0.001;
         glm::vec3 b = spiky_grad(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS);
         float a = (p_j->lambda + p_i->lambda + s_corr);
         delta_p += a * b;
     }
-    return (1 / REST_DENSITY) * delta_p;
+    delta_p = (1 / REST_DENSITY) * delta_p;
+    if (glm::length(delta_p) > 0.1) {
+        delta_p = glm::normalize(delta_p) * 0.1f;
+    }
+    return delta_p;
 }
 
 __device__ glm::vec3 vorticity(Particle *p_i, Particle *particles) {
@@ -184,30 +180,25 @@ __device__ glm::vec3 vorticity(Particle *p_i, Particle *particles) {
     return w;
 }
 
-__device__ glm::vec3 f_vorticity(Particle *p_i, Particle *particles) {
-    glm::vec3 force;
-    glm::vec3 w = vorticity(p_i, particles);
-    float rho = rho_i(p_i, particles);
+__device__ glm::vec3 vort_and_XSPH_vel(Particle *p_i, Particle *particles) {
+    glm::vec3 eta;
+    glm::vec3 neighbor_vs;
     for (int i = 0; i < p_i->num_neighbors; ++i) {
         int n = p_i->neighborhood[i];
         Particle *p_j = &particles[n];
-        glm::vec3 p_x = (p_i->m * p_i->pred_p + p_j->m * p_j->pred_p) * (1.f / (p_i->m + p_j->m));
-        glm::vec3 eta = p_x - p_i->pred_p;
-        glm::vec3 N = glm::normalize(eta);
-        force += EPS_T * glm::cross(N, w) * rho;
-    }
-    return force;
-}
+        eta += (1 / max(p_j->rho, 100.f)) * glm::length(p_j->w) * spiky_grad(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS);
 
-__device__ glm::vec3 XSPH_vel(Particle *p_i, Particle *particles) {
-    glm::vec3 v;
-    for (int i = 0; i < p_i->num_neighbors; ++i) {
-        int n = p_i->neighborhood[i];
-        Particle *p_j = &particles[n];
-        glm::vec3 v_ij = p_j->v - p_i->v;
-        v += v_ij * poly6(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS);
+        glm::vec3 v_ji = p_j->v - p_i->v;
+        neighbor_vs += (1 / max(p_j->rho, 100.f)) * v_ji * poly6(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS); // MAY need to flip v
     }
-    return p_i->v + VISCOSITY * v;
+    if (length(eta) > MAX_VORT_ADJ) {
+        eta = glm::normalize(eta);
+    } else {
+        eta = glm::vec3();
+    }
+    glm::vec3 f_vorticity = PRESSURE_EPS * glm::cross(eta, p_i->w);
+    return p_i->v + VISCOSITY * neighbor_vs + PRESSURE_EPS * DELTA_T * f_vorticity;
+    return p_i->v + VISCOSITY * neighbor_vs;
 }
 
 __device__ void triangle_collide(Triangle &t, Particle &p) {

@@ -30,7 +30,6 @@ void ParticleManager::init() {
                 Particle par;
                 par.p = vec3((x + 0.5 - nx * 0.5) * d, y * d, (z + 0.5 - nz * 0.5) * d);
                 par.pred_p = glm::vec3();
-                par.f = glm::vec3();
                 par.v = glm::vec3();
                 par.m = PARTICLE_MASS;
                 par.num_neighbors = 0;
@@ -52,7 +51,7 @@ void ParticleManager::init() {
 
     Plane side1; //BACK
     side1.point = glm::vec3(0, 0, 5);
-    side1.normal = glm::vec3(0, 0, 2);
+    side1.normal = glm::vec3(0, 0, 1);
 
     Plane side2; //LEFT
     side2.point = glm::vec3(-10, 0, 0);
