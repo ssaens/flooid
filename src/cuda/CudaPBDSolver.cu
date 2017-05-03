@@ -9,10 +9,10 @@
 #include "CudaPBDSolver.cuh"
 
 const int PRESSURE_POW = 4;
-const float VISCOSITY = 0.05;
+const float VISCOSITY = 0.01;
 const float SURFACE_OFFSET = 0.000001;
-const float PRESSURE_STRENGTH =  0.0005f;
-const float PRESSURE_EPS = 75;
+const float PRESSURE_STRENGTH =  0.001f;
+const float PRESSURE_EPS = 1e-2f;
 const float MAX_VORT_ADJ = 0.0001f;
 
 using namespace glm;
@@ -58,7 +58,6 @@ __global__ void run_solver(Particle *particles, int n, Triangle *triangles, int 
         for (int i = 0; i < num_planes; ++i) {
             plane_collide(planes[i], p);
         }
-        p.pred_p += p.dp;
         glm::vec3 displacement = p.pred_p + p.dp - p.p;
         if (glm::length(displacement) > 0.1f) {
             displacement = glm::normalize(displacement) * 0.1f;
@@ -80,9 +79,9 @@ __global__ void run_solver(Particle *particles, int n, Triangle *triangles, int 
     __syncthreads();
 
     p.v = vort_and_XSPH_vel(&p, particles);
-    // if (glm::length(p.v) > 5.f) {
-    //     p.v = glm::normalize(p.v) * 5.f;
-    // }
+    if (glm::length(p.v) > 7.f) {
+        p.v = glm::normalize(p.v) * 7.f;
+    }
 
     p.p = p.pred_p;
     p.num_neighbors = 0;
@@ -130,7 +129,6 @@ __device__ float lambda_i(Particle *p_i, Particle *particles) {
         grad_k_ci = grad_k_Ci(p_k, p_i, particles);
         grad_sum += pow(glm::length(grad_k_ci), 2);
     }
-    // grad_sum += glm::dot(grad_k_ci, grad_k_ci);
     return -C_i * (1 / (grad_sum + EPS_T));
 }
 
@@ -175,7 +173,7 @@ __device__ glm::vec3 vorticity(Particle *p_i, Particle *particles) {
         int n = p_i->neighborhood[i];
         Particle *p_j = &particles[n];
         glm::vec3 v_ij = p_j->v - p_i->v;
-        w += glm::cross(v_ij, spiky_grad(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS));
+        w += glm::cross(spiky_grad(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS), v_ij);
     }
     return w;
 }
@@ -187,7 +185,6 @@ __device__ glm::vec3 vort_and_XSPH_vel(Particle *p_i, Particle *particles) {
         int n = p_i->neighborhood[i];
         Particle *p_j = &particles[n];
         eta += (1 / max(p_j->rho, 100.f)) * glm::length(p_j->w) * spiky_grad(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS);
-
         glm::vec3 v_ji = p_j->v - p_i->v;
         neighbor_vs += (1 / max(p_j->rho, 100.f)) * v_ji * poly6(p_i->pred_p - p_j->pred_p, KERNEL_RADIUS); // MAY need to flip v
     }
@@ -197,8 +194,8 @@ __device__ glm::vec3 vort_and_XSPH_vel(Particle *p_i, Particle *particles) {
         eta = glm::vec3();
     }
     glm::vec3 f_vorticity = PRESSURE_EPS * glm::cross(eta, p_i->w);
-    return p_i->v + VISCOSITY * neighbor_vs + PRESSURE_EPS * DELTA_T * f_vorticity;
-    return p_i->v + VISCOSITY * neighbor_vs;
+    return p_i->v + VISCOSITY * neighbor_vs + DELTA_T * f_vorticity;
+    // return p_i->v + VISCOSITY * neighbor_vs;
 }
 
 __device__ void triangle_collide(Triangle &t, Particle &p) {
