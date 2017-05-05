@@ -19,16 +19,42 @@ void ParticleManager::init() {
     shade_mode = SHADE_PARTICLE;
     skybox_id = parent->skybox.textureID;
 
-    int nx = 20;
-    int ny = 50;
-    int nz = 20;
+    // int nx = 40;
+    // int ny = 50;
+    // int nz = 40;
 
-    float d = particle_radius * 2;
-    for (int x = 0; x < nx; ++x) {
-        for (int y = 1 / d; y < 1 / d + ny; ++y) {
-            for (int z = 0; z < nz; ++z) {
+    // float d = particle_radius * 2;
+    // for (int x = 0; x < nx; ++x) {
+    //     for (int y = 1 / d; y < 1 / d + ny; ++y) {
+    //         for (int z = 0; z < nz; ++z) {
+    //             Particle par;
+    //             par.p = vec3((x + 0.5 - nx * 0.5) * d, y * d, (z + 0.5 - nz * 0.5) * d);
+    //             par.pred_p = glm::vec3();
+    //             par.v = glm::vec3();
+    //             par.m = PARTICLE_MASS;
+    //             par.num_neighbors = 0;
+    //             par.lambda = 0;
+    //             par.collided = false;
+    //             particles.push_back(par);
+    //             initial_positions.push_back(par.p);
+    //         }
+    //     }
+    // }
+
+    int ny = 300;
+    float d = particle_radius * 2.1;
+    for (int y = 3; y < 3 + ny; ++y) {
+        for (float r = 0; r < 1; r += d) {
+            float circ = 2 * M_PI * r;
+            float num_parts = circ / d;
+            if (r == 0) {
+                num_parts = 1;
+            }
+            for (float theta = 0; theta < 2 * M_PI - 2 * M_PI / num_parts; theta += 2 * M_PI / num_parts) {
                 Particle par;
-                par.p = vec3((x + 0.5 - nx * 0.5) * d, y * d, (z + 0.5 - nz * 0.5) * d);
+                float x = std::cos(theta);
+                float z = std::sin(theta);
+                par.p = vec3(r * x, y * d, r * z);
                 par.pred_p = glm::vec3();
                 par.v = glm::vec3();
                 par.m = PARTICLE_MASS;
@@ -42,23 +68,23 @@ void ParticleManager::init() {
     }
 
     Plane ground; //BOTTOM
-    ground.point = glm::vec3(0, 0, 0);
+    ground.point = glm::vec3(0, -4, 0);
     ground.normal = glm::vec3(0, 1, 0);
 
     Plane side0; // RIGHT
-    side0.point = glm::vec3(6, 0, 0);
+    side0.point = glm::vec3(5, 0, 0);
     side0.normal = glm::vec3(1, 0, 0);
 
     Plane side1; //BACK
-    side1.point = glm::vec3(0, 0, 2);
+    side1.point = glm::vec3(0, 0, 5);
     side1.normal = glm::vec3(0, 0, 1);
 
     Plane side2; //LEFT
-    side2.point = glm::vec3(-2, 0, 0);
+    side2.point = glm::vec3(-5, 0, 0);
     side2.normal = glm::vec3(1, 0, 0);
 
     Plane side3; // BACK
-    side3.point = glm::vec3(0, 0, -2);
+    side3.point = glm::vec3(0, 0, -5);
     side3.normal = glm::vec3(0, 0, 1);
 
     Plane side4; // TOP
@@ -69,7 +95,7 @@ void ParticleManager::init() {
     planes.push_back(side1);
     planes.push_back(side2);
     planes.push_back(side3);
-    planes.push_back(side4);
+    // planes.push_back(side4);
 
     particle_shader.load("src/shaders/particle.vert", "src/shaders/particle.frag");
     velocity_shader.load("src/shaders/particle_velocity.vert", "src/shaders/particle_velocity.frag");

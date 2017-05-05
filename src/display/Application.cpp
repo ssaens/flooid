@@ -18,7 +18,7 @@ void Application::init() {
     last_x = screen_w / 2;
     last_y = screen_h / 2;
     first_mouse = true;
-    light.pos = glm::vec3(0, 5, 0);
+    light.pos = glm::vec3(0, 7, 0);
     light.color = glm::vec3(1, 1, 1);
     light_mesh = generate_cube_mesh(.2);
     skybox.load_cube_map(faces);
@@ -119,24 +119,25 @@ void Application::mouse_event(int button, int action, int mods) {
 }
 
 void Application::move_camera(float dt) {
-    if (keys[GLFW_KEY_W]) {
-        camera.keyboard_event(FORWARD, dt);
-    }
-    if (keys[GLFW_KEY_S]) {
-        camera.keyboard_event(BACKWARD, dt);
-    }
-    if (keys[GLFW_KEY_A]) {
-        camera.keyboard_event(LEFT, dt);
-    }
-    if (keys[GLFW_KEY_D]) {
-        camera.keyboard_event(RIGHT, dt);
-    }
-    if (keys[GLFW_KEY_SPACE]) {
-        camera.keyboard_event(UP, dt);
-    }
-    if (keys[GLFW_KEY_LEFT_SHIFT]) {
-        camera.keyboard_event(DOWN, dt);
-    }
+    // if (keys[GLFW_KEY_W]) {
+    //     camera.keyboard_event(FORWARD, dt);
+    // }
+    // if (keys[GLFW_KEY_S]) {
+    //     camera.keyboard_event(BACKWARD, dt);
+    // }
+    // if (keys[GLFW_KEY_A]) {
+    //     camera.keyboard_event(LEFT, dt);
+    // }
+    // if (keys[GLFW_KEY_D]) {
+    //     camera.keyboard_event(RIGHT, dt);
+    // }
+    // if (keys[GLFW_KEY_SPACE]) {
+    //     camera.keyboard_event(UP, dt);
+    // }
+    // if (keys[GLFW_KEY_LEFT_SHIFT]) {
+    //     camera.keyboard_event(DOWN, dt);
+    // }
+    camera.update(dt);
 }
 
 void Application::set_cube_path(std::string cube_path) {

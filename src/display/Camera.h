@@ -16,6 +16,7 @@ using namespace glm;
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include <iostream>
 
 enum Camera_Movement {
@@ -29,7 +30,7 @@ enum Camera_Movement {
 
 // Default camera values
 const float YAW        = -90.0f;
-const float PITCH      =  -20.0f;
+const float PITCH      =  -30.0f;
 const float SPEED      =  3.0f;
 const float SENSITIVTY =  0.1f;
 const float ZOOM       =  M_PI / 4;
@@ -39,7 +40,7 @@ const float NCLIP      =  0.1f;
 const float FCLIP      =  100.f;
 const float VDIST      =  10.f;
 
-const glm::vec3 DEFAULT_POS = glm::vec3(3.f, 5.f, 12.f);
+const glm::vec3 DEFAULT_POS = glm::vec3(0.f, 7.f, 15.f);
 const glm::vec3 DEFAULT_UP = glm::vec3(0.f, 1.f, 0.f);
 const glm::vec3 DEFAULT_FRONT = glm::vec3(0.f, 0.f, -1.f);
 
@@ -62,6 +63,8 @@ public:
     float min_zoom, max_zoom;
     float n_clip, f_clip;
     float view_dist;
+
+    float t;
 
     // Constructor with vectors
     Camera(
@@ -157,6 +160,16 @@ public:
             this->zoom = min_zoom;
         if (this->zoom >= max_zoom)
             this->zoom = max_zoom;
+    }
+
+    void update(float dt) {
+        t += dt / 200;
+        float x = 20 * std::cos(t);
+        float z = 20 * std::sin(t);
+        this->pos = glm::vec3(x, this->pos.y, z);
+        this->front = glm::normalize(-this->pos);
+        this->right = glm::normalize(glm::cross(this->front, this->world_up));  // Normalize the vectors, because their             length gets closer to 0 the more you look up or down which results in slower movement.
+        this->up    = glm::normalize(glm::cross(this->right, this->front));
     }
 
 private:

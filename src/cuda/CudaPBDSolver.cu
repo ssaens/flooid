@@ -30,6 +30,7 @@ __device__ glm::vec3 vort_and_XSPH_vel(Particle *p_i, Particle *particles);
 
 __device__ void triangle_collide(Triangle &t, Particle &p);
 __device__ void plane_collide(Plane &p, Particle &par);
+__device__ void sphere_collide(Particle &p);
 
 __global__ void seed_position(Particle *particles, int n) {
     int index = threadIdx.x + blockIdx.x * blockDim.x;
@@ -52,23 +53,26 @@ __global__ void run_solver(Particle *particles, int n, Triangle *triangles, int 
         p.lambda = lambda_i(&p, particles);
         __syncthreads();
         p.dp = delta_p(&p, particles);
-        for (int i = 0; i < num_triangles; ++i) {
-            triangle_collide(triangles[i], p);
-        }
-        for (int i = 0; i < num_planes; ++i) {
-            plane_collide(planes[i], p);
-        }
+        // for (int i = 0; i < num_triangles; ++i) {
+        //     triangle_collide(triangles[i], p);
+        // }
+       
+        // sphere_collide(p);
         glm::vec3 displacement = p.pred_p + p.dp - p.p;
         if (glm::length(displacement) > 0.1f) {
             displacement = glm::normalize(displacement) * 0.1f;
         }
         p.pred_p = p.p + displacement;
+         for (int i = 0; i < num_planes; ++i) {
+            plane_collide(planes[i], p);
+        }
+            sphere_collide(p);
         __syncthreads();
     }
 
-    for (int i = 0; i < num_triangles; ++i) {
-        triangle_collide(triangles[i], p);
-    }
+    // for (int i = 0; i < num_triangles; ++i) {
+    //     triangle_collide(triangles[i], p);
+    // }
     for (int i = 0; i < num_planes; ++i) {
         plane_collide(planes[i], p);
     }
@@ -246,5 +250,19 @@ __device__ void plane_collide(Plane &p, Particle &par) {
         par.pred_p = proj_point;
         // par.v = glm::reflect(-par.v, p.normal);
         par.v = glm::vec3();          
+    }
+}
+
+__device__ void sphere_collide(Particle &p) {
+    if (p.p.y > 0) return;
+    glm::vec3 origin;
+    float radius = 1.5;
+    float pos_dist = glm::length(p.p - origin);
+    float pred_dist = glm::length(p.pred_p - origin);
+    glm::vec3 normal = glm::normalize(p.pred_p - origin); // o to pred_p
+    glm::vec3 ray = p.pred_p - p.p;
+    if (pred_dist >=radius && pos_dist <= radius) {   
+        glm::vec3 proj_point = normal * radius + origin - normal * SURFACE_OFFSET;
+        p.pred_p = proj_point;
     }
 }
