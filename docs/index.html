@@ -1,0 +1,116 @@
+<html>
+<head>
+<style>
+  body {
+    padding: 100px;
+    width: 1000px;
+    margin: auto;
+    text-align: left;
+    font-weight: 300;
+    font-family: 'Open Sans', sans-serif;
+    color: #121212;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+</style>
+<title>CS 184 Final Project Proposal</title>
+</head>
+<body>
+
+<h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2017</h1>
+<h1 align="middle">Final Project Proposal</h1>
+<h1 align="middle">Fluid Simulation</h1>
+<h2 align="middle">Dillon Yao, CS184-aai</h2>
+<h2 align="middle">Tony Situ, CS184-acl</h2>
+
+<br><br>
+
+<div>
+
+<h2 align="middle">Title, Summary and Team Members</h2>
+<!-- Title, Summary and Team Members
+Provide us a descriptive title, 2-3 sentences that summarize your project, and list your two team members. -->
+<h4 align="middle"> Fluid Simulation</h4>
+<br>
+<h4 align="middle"> Summary </h4>
+<p>We will be building a 3D particle based fluid simulator that can render realistic demo scenes of fluid interaction and movement. Ideally, the fluid will also interact with physical objects with different bouyancies.</p>
+<h4 align="middle"> Team Members</h4>
+<p>Dillon Yao</p>
+<p>Tony Situ</p>
+
+<h2 align="middle">Problem Description</h2>
+<!-- Problem Description
+Here you should provide the context for your idea. Describe the problem that you are trying to solve, why it is important, where it is challenging. Give us a general idea on how you are going to solve it. -->
+<p>3D particle based fluid simulation is a widely explored field in computer graphics with a variety of techinical challenges 
+  and potential optimizations.  Simulating realistic fluid motion has to take into account an array of issues in terms of computational
+  complexity and physical constraints such as enforcing fluid properties e.g. incompressibility, surface tension, and vorticity.  
+  Developing and improving fluid simulation methods would have a huge impact in a variety of outside of immediately obvious applications
+  in computer graphics.  Simulating fluids is important to industries like animation, civil engineering, chemical engineering, materials 
+  engineering, etc. Our approach to tackling the challenge of fluid simulation will follow research papers published on the subject that 
+  identify various mathematical methods that best emulate the properties of fluids and to deal with computation complexity we will be 
+  leveraging the parallelizability of particle computation in fluids.</p>
+
+
+<h2 align="middle">Goals and Deliverables</h2>
+<!-- Goals and Deliverables
+This is the most important part of your proposal. You should carefully think through what you are trying to accomplish, what results you are going for, and why you think you can accomplish those goals. For example:
+Since this is a graphics class you will likely define the kind of images you will create (e.g. including a photo of a new lighting effect you will simulate).
+
+If you are working on an interactive system, describe what demo you will create.
+
+Define how you will measure the quality / performance of your system (e.g. graphs showing speedup, or quantifying accuracy). It may not be possible to define precise target metrics at this time, but we encourage you to try. 
+
+What questions do you plan to answer with your analysis?
+
+You should break this section into two parts: (1) what you plan to deliver, and (2) what you hope to deliver. In (1), describe what you believe you must accomplish to have a successful project and achieve the grade you expect (i.e. your baseline plan -- planning for some unexpected problems would make sense). In (2), describe what you hope to achieve if things go well and you get ahead of schedule (your aspirational plan).-->
+  
+  <h4>Planned Deliverables</h4>
+  <p>At the end of this project, we expect to have a 3D position based particle fluid simulator. We will create a demo scene showing 
+    a classic fluid tank with static objects (unaffected by physics) and show how the fluid interacts with these objects</p>
+  <p>The quality of the simulation can be measured by mirroring the demo scene with a real life scene and compare the two side by side, 
+    evaluating for realism.</p>
+  
+  <h4>Hopeful Deliverables</h4>
+  <p>We hope to be able to simulate as well fluid interactions with bouyant materials realistically (i.e. ojects floating or sinking)</p>
+  <p>Again the quality of the system will be difficult to quantify, but a comparison between a modeled scene and real scene is a start</p>
+  <p>We also hope to be able to texture the fluid to appear as a body of liquid rather than the underlying particle representation</p>
+
+<h2 align="middle">Schedule</h2>
+<!-- Schedule
+In this section you should organize and plan the tasks and subtasks that your team will execute. Since presentations are ~4 weeks from the due-date of the proposal, you should include a set of tasks for every week. -->
+<table>
+    <tr>
+    <th>Week 1</th>
+    <td>Learn openGL, Begin particle model of fluid</td>
+  </tr>
+  <tr>
+    <th>Week 2</th>
+    <td>Complete underlying particle model and ensure particles interact as expected</td>
+  </tr>
+  <tr>
+    <th>Week 3</th>
+    <td>Add bouyancy and macro object interactions</td>
+  </tr>
+  <tr>
+    <th>Week 4</th>
+    <td>Consider performance improvements and texturing of fluid</td>
+</table>
+
+<h2 align="middle">Resources</h2>
+<!-- Resources
+List what resources, e.g. books, papers and/or online resources that are references for your project. List the computing platform, hardware and software resources that you will use for your project. You have a wide latitude here to use what you have access to, but be aware that you will have to support and trouble-shoot on your platform yourselves. If you are starting from an existing piece of code or system, describe and provide a pointer to it here. -->
+  <h4>Papers</h4>
+        <p><a href='http://mmacklin.com/pbf_sig_preprint.pdf'>Position Based Fluids</a></p> 
+  <p><a href='http://matthias-mueller-fischer.ch/publications/sca03.pdf'>Particle-Based Fluid Simulation for Interactive Applications</a></p>
+    <p><a href='http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=EC42C77C187FF45BB1274BA438E087CA?doi=10.1.1.101.7883&rep=rep1&type=pdf'>Screen Space Meshes</a></p>
+  <p><a href='http://www.cs.rug.nl/~roe/publications/fluidcurvature.pdf'></a></p>
+  <p><a href='http://developer.download.nvidia.com/presentations/2010/gdc/Direct3D_Effects.pdf'></a></p>
+  <h4>Computing Platform/Hardware</h4>
+    <p>MacbookPro, s349 Computers</p>
+  <h4>Software</h4>
+    <p>CLion IDE, openGL, SDL, Krakatoa</p>
+
+</body>
+</html>
+
