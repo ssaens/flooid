@@ -66,29 +66,6 @@
         <p>The struct keeps track of particle positions, the predicted position of the particle for the next time step, a incompressibility pressure correction term <code>delta_pos</code>, as well as the current velocity and force acting on the particle. Additionally, the algorithms presented to enforce incompressibility require knowledge of the particles neighbors, for which we built a spatial map similar to that in the project 4 cloth simulator to quickly search for the particles in range of the particle of interest.<p>
         <br/>
     </div>
-
-    <p>However, to take advantage of CUDA, the structure had to be modifed into the following:</p>
-
-    <div style='columns: 2'>
-        <pre>
-        <k>struct</k> Particle {
-            <t>vec3</t> position;
-            <t>vec3</t> pred_position;
-            <t>vec3</t> delta_position;
-            <t>vec3</t> velocity;
-            <t>vec3</t> omega;
-            
-            <t>float</t> mass;
-            <t>float</t> lambda;
-            <t>float</t> rho;
-
-            <t>int</t> neighborhood[MAX_NEIGHBORS];
-            <t>int</t> num_neighbors;
-        }
-        </pre>
-        <p>The major changes to note are the removal of the force members, since we decided to modify velocity on demand rather than storing a forces in the particle.  The addition of the mass, lambda, rho, and omega terms were a result of the device not having access to data stored in host memory during the update calculations.  We included these terms in the particles which are all passed into the GPU during the parallelized update along with the neighborhood and num_neighbors members.  Collectively, these allow us to limit the number of neighbors a particle can have and and to access them by array indices since the spatial map is built in host memory and therefore not visible from the scope of the device. <p>
-        <br/>
-    </div>  
     
     <p>Having our particle representation, we implemented the following algorithm:</p>
     
@@ -119,38 +96,53 @@
     <p align="middle">\(\textbf{x}_{i}^* \Leftarrow \textbf{x}_{i} + \Delta t \textbf{v}_{i}\)</p>
 
 <h4>Determining Neighboring Particles</h4>
-    <p>The next step is to find each Particles neighbors in an efficient manner for following calcuations in the update step.  For this step we followed the procedure outlined in <a href="http://developer.download.nvidia.com/compute/cuda/2_2/sdk/website/projects/particles/doc/particles.pdf"> Cuda Particles [Green] </a>.  Our interpretation of this approach divides the 3D space of the simulation into bins or voxels and particles are hashed into a voxel based on their positions.  With this hash function we can build a spatial map between a hash key and its corresponding bin, where particles that lie in the same bin should hash to the same key.  We set the bin size to be the same as the particle radius.  We note that for any given particle all candidate neighbor particles lie within the space immediately surrounding the bin corresponding to the given particle's hash key.  This means we need to search only 27 bins and the particles they contain to ensure that we find all nieghbors for a given particle.  The cutoff distance to be considered a neighbor is chosen empiracally.</p>
+    <p>The next step is to find each Particles neighbors in an efficient manner for following calcuations in the update step.  For this step we followed the procedure outlined in <a href="http://developer.download.nvidia.com/compute/cuda/2_2/sdk/website/projects/particles/doc/particles.pdf"> Cuda Particles [Green] </a>.  Our interpretation of this approach divides the 3D space of the simulation into bins or voxels sized relative to the kernel radius used, \(h\), and particles are hashed into a voxel based on their positions.  With this hash function we can build a spatial map between a hash key and its corresponding bin, where particles that lie in the same bin should hash to the same key. We note that for any given particle all candidate neighbor particles lie within the space immediately surrounding the bin corresponding to the given particle's hash key.  This means we need to search only 27 bins and the particles they contain to ensure that we find all neighbors for a given particle.  The cutoff distance to be considered a neighbor is chosen empirically. We came up with the following hash function:</p>
     
+    <pre>
+    <t>int</t> ParticleManager::hash_bin(<t>glm::ivec3</t> pos) {
+        <k>return</k> (pos.x * 0x9e3779b9 + pos.y) * 1610612741 + pos.z;
+    }</pre>
 
 <h4>Enforcing Incompressibility</h4>
     <p>To enforce a constant density in the particles to emulate fluid incompressibility we evaluate a series of equations based off a particle and it's neighbors calculated from the last step.  The result of this is a correctional vector, \(\Delta \textbf{p}\), to be applied to each particle.  Firstly we express the density constraint on the <em>ith</em> particle as a function of the position of itself and its neighbors.</p>
 
     <p align="middle">\(C_{i}(\textbf{p}_{1}, ...,\textbf{p}_{n}) = \frac{\rho_{i}}{\rho_{0}} - 1\)<p>
+    
+    <p>\(\rho_0\) is the rest density of the fluid, which is found imperically. The density \(\rho_i\) of a particle is found using the standard SPH estimator:</p>
+    
+    <p align='middle'>\(\rho_{i} = \sum_j m_j W_(\textbf{p}_i - \textbf{p}_j, h)\)</p>
 
-    <p>From this density constraint we evaluate the following scaling factor to apply the correctional force.  Note that \(\epsilon\) is an empirically chosen relaxation parameter.</p>
+    <p>Where \(W\) is a kernel function and the summation is over all neighbors \(j\), see appendix for details. From this density constraint we evaluate the following scaling factor to apply the correctional force.  Note that \(\epsilon\) is an empirically chosen relaxation parameter.</p>
 
-    <p align="middle">\(\lambda_{i} = -\frac{C_{i}(\textbf{p}_{1}, ...,\textbf{p}_{n})}{\Sigma_{k}\lvert\nabla_{\textbf{p}_{k}}C_{i}\rvert^2 + \epsilon}\)
+    <p align="middle">\(\lambda_{i} = -\frac{C_{i}(\textbf{p}_{1}, ...,\textbf{p}_{n})}{\Sigma_{k}\lvert\nabla_{\textbf{p}_{k}}C_{i}\rvert^2 + \epsilon}\)</p>
+        
+    <p align='middle'>\(\nabla_{\textbf{p}_k}C_i = \frac{1}{\rho_0}\sum_j\nabla_{\textbf{p}_k}W(\textbf{p}_i-\textbf{p}_j, h)\)</p>
 
     <p> Now with the scaling factor we can write the total position update, \(\Delta \textbf{p}_{i}\),  for a given particle \(\textbf{p}_{i}\) as:</p>
 
-    <p align="middle"> \(\Delta \textbf{p}_{i} = \frac{1}{\rho_{0}} \Sigma_{j}(\lambda_{i} + \lambda_{j})\nabla W(\textbf{p}_{i} - \textbf{p}_{j}, h)\)</p>
+    <p align="middle"> \(\Delta \textbf{p}_{i} = \frac{1}{\rho_{0}} \sum_j(\lambda_{i} + \lambda_{j})\nabla W(\textbf{p}_{i} - \textbf{p}_{j}, h)\)</p>
 
-    <p>We also note that due to this term, particles do not have to implement self collision since enforcing incompressibility already accomplishes the former.</p>
+    <p>We also note that due to this term, particles do not have to implement self collision since enforcing incompressibility already accomplishes this.</p>
 
-
+    <p>At this point, we were able to generate basic renders where particles attempt to distribute density throughout the fluid body.</p>
+    
+    <div align='middle'>
+        <img src='img/fluid_no_vort.gif' width=400>
+    </div>
+        
 <h4>Tensile instability</h4>
-    <p>Since many of the calculations in the simulation depend on a given particle's neighbors, a deficiency of neighbors leads to noticeble particle clumping.  To compensate for this, we add an aritfical pressure term specified in terms of the smoothing kernel, \(W\).</p>
+    <p>Since many of the calculations in the simulation depend on a given particle's neighbors, a deficiency of neighbors leads to noticeble particle clumping.  To compensate for this, we add an aritfical pressure term, \(s_{corr}\) added to the lambda values in the coefficient of the last equation. specified in terms of the smoothing kernel, \(W\).</p>
 
     <p align="middle">\(s_{corr} = -k (\frac{W(\textbf{p}_{i} - \textbf{p}_{j}, h)}{W(\Delta\textbf{q}, h)})^2\)</p>
 
-    <p>\(\Delta q\) is a point located a fixed distance inside the smoothing kernel radius and \(k\) is a small positive cosntant, both of which are empiracally determined. This correctional term ensures that particle density is slightly lower than rest density.  Furthermmore this also causes paarticles to attract their neighbors producing surface tension effects seen in fluids.</p>
+    <p>\(\Delta q\) is a point located a fixed distance inside the smoothing kernel radius and \(k\) is a small positive cosntant, both of which are empirically determined. This correctional term ensures that particle density is slightly lower than rest density.  Furthermmore this also causes particles to attract their neighbors producing surface tension effects seen in fluids.</p>
 
 
 
 <h4>Vorticity Confinement and Viscosity</h4>
-    <p>As noted by Müller et al, position based methods such as this one often have an issue with introducing additional damping which produces undesirable results in the simulation.  This numerical dissapation is countered by vorticity confinement to replace any lost energy from the system.  We first implemented the base procedure outlined by Müller et al:
+    <p>As noted by Muller et al, position based methods such as this one often have an issue with introducing additional damping which produces undesirable results in the simulation.  This numerical dissapation is countered by vorticity confinement to replace any lost energy from the system.  We first implemented the base procedure outlined by Muller et al:
 
-    <p align="middle">\(\omega_{i} = \nabla \times \textbf{v} = \Sigma_{j}\textbf{v}_{ij} \times \nabla_{\textbf{p}_{j}}W(\textbf{p}_{i}, \textbf{p}_{j}, h)\)</p>
+    <p align="middle">\(\omega_{i} = \nabla \times \textbf{v} = \sum_{j}\textbf{v}_{ij} \times \nabla_{\textbf{p}_{j}}W(\textbf{p}_{i} - \textbf{p}_{j}, h)\)</p>
 
     <p align="middle">\(\textbf{f}_{i}^{vorticity} = \epsilon (\textbf{N} \times \omega_{i})\)</p>
 
@@ -158,23 +150,152 @@
 
     <p align="middle">\(\textbf{p}_{\oplus} = \frac{m_{i}\textbf{p}_{i} + m_{j}\textbf{p}_{j}}{m_{i} + m_{j}}\)</p>
     <p align="middle">\(\eta = \textbf{p}_{\oplus} - \textbf{p}_{i}\)</p>
+    <p align="middle">\(\textbf{N} = \frac{\eta}{|\eta|}\)</p>
 
     <p>Finally, to emphasize coherent motion in the fluid we add XSPH viscosity with an empirically chosen parameter, \(c\) :</p>
 
     <p align="middle">\(\textbf{v}_{i}^{new} = \textbf{v}_{i} + c\Sigma_{j}\textbf{v}_{ij}\cdot W(\textbf{p}_{i} - \textbf{p}_{j}, h)\)</p>
-
-<h4>Collisions<h4>
-
+    
+    <p>The vorticity model gave us a large amount of trouble for a great deal of time as whenever the additional velocity was added back into the system, the simulation tended to blow up and particles would gain extremely large velocities seemingly out of nowhere. By adding a clamp to the maximum about of force that the voritcity adjustment could add and lowering the coefficient with which this force is weighted, we were able to limit this explosion while still being able to see the effects of vorticity confinement. This increases the realism of the render and helps in reducing the stacking effect from before.</p>
+    
+    <div align='middle'>
+        <img src='img/fluid.gif' width=400>
+    </div>
+        
+<h4>Collisions</h4>
 
     <p>To create a basic scene, we also implemented basic particle-plane collisions. If we find a particle is predicted to pass through a plane (its predicted position and current position are on opposite sides of the plane), we simply move the particle along the plane's normal until it is back on the correct side of the plane, adding a small offset <code><k>SURFACE_OFFSET</k></code> to prevent it from colliding immediately again.</p>
+    
+    <p>We extended this to triangles collisions as well. We use the Moller-Trumbore algorithm to identify the time of collision as well as the barycentric coordinates of the point of intersection, treating the particle as a ray originating at its current position and moving in the direction of its predicted position. If we see the particle does pass through the plane in this timestep, we check if the barycentric coordinates lie within the triangle body, and if so, we use the same collision procedure as for planes save for pushing the particle up from the collision point, not from the projection of the predicted particle to the triangle surface, mostly for programming ease reasons. This unfortunately leads particles to stick to triangle faces, but it is relatively simple to swap this collision code out for that of the planes.</p>
+    
+    <p>As an extra, we added sphere collisions as well. Again we check if a particle ends up on opposite sides of the sphere during a timestep. If so, we simple take the particles predicted position and project it alonga sphere normal to the surface of the sphere. Depending on the direction of travel, we give the predicted position a small offset of <code><k>SURFACE_OFFSET</k></code> in the appropriate direction.</p>
 
 
-<h2>OpenGL Upgrade and Rendering Parallelization</h2>
-<h2>CUDA Parallelization<h2>
+<h3>OpenGL VAO's and Rendering Parallelization</h3>
+    <p>Because particles all look the exact same, and copying vertices to the GPU to render is an expensive operation, we can use instancing to copy over all particle information once and draw once per render operation. This required us to create our own particle VAO, containing the necessary information from which triangles could be constructed and drawn. This was done by sampling over the sphere over longitude and latitude lines. All particles are drawn using this VAO, with an additional offset parameter passed into the shader to differentiate them. The following shader then was used for particles:</p>
+    
+    <pre>
+    #version 330 core
+    <k>layout</k> (<k>location</k> = 0) <k>in</k> <t>vec3</t> pos;
+    <k>layout</k> (<k>location</k> = 1) <k>in</k> <t>vec3</t> n;
+    <k>layout</k> (<k>location</k> = 2) <k>in</k> <t>vec3</t> offset;
+
+    <k>out</k> <t>vec3</t> normal;
+    <k>out</k> <t>vec3</t> frag_pos;
+
+    <k>uniform</k> <t>mat4</t> view;
+    <k>uniform</k> <t>mat4</t> projection;
+
+    <k>void</k> main() {
+        gl_Position = projection * view * vec4(pos + offset, 1.0f);
+        normal = n;
+        frag_pos = pos + offset;
+    }</pre>
+    
+    <p>Because the entire array of particle structs is passed in, in the fragment shader, we can also read additional inputs such as the particle's velocity, curl, neighbors, etc. for additional fun shaders. Because these shaders run in parallel on the GPU, lighting effects such as blinn-phong shading and drawing can then be done in parallel, increasing the number of particles we could handle and aesthetic features we could add to the model.</p>
+    
+<h3>CUDA Parallelization</h3>
+    <p>While rendering could now be done in parallel, it's hard to escape that the update algorithm itself is already embarrasingly parallel. We decided to be able to increase our particle counts, we would attempt to use CUDA to move the calculation of the algorithm itself on the GPU as well. Integrating CUDA with our current project's cmake files was a bit of a struggle due to our project structure, but thankfully the nvidia forums are quite active. Upon compilation, we did not realize that we could not use the standard library on GPU, meaning we had to rethink our particle model, at which point was relying on vectors to keep track of particle neighbors, stored as particle pointers. We made the decision then to cap the number of neighbors a particle could have to 50 and create an array of ints to store neighbors instead. This array only stores the index of the neighbor in a shared array of all particles. An additional variable to keep track of the number of neighbors the particle actually has was also added to allow for safe iteration over the neighbors list. The new particle struct was then created:</p>
+    
+
+<div style='columns: 2'>
+    <pre>
+    <k>struct</k> Particle {
+        <t>vec3</t> position;
+        <t>vec3</t> pred_position;
+        <t>vec3</t> delta_position;
+        <t>vec3</t> velocity;
+        <t>vec3</t> omega;
+
+        <t>float</t> mass;
+        <t>float</t> lambda;
+        <t>float</t> rho;
+
+        <t>int</t> neighborhood[MAX_NEIGHBORS];
+        <t>int</t> num_neighbors;
+    }</pre>
+    
+        <p>The other major changes to note are the removal of the force members, since we decided to modify velocity on demand rather than storing a forces in the particle.  The addition of the lambda, rho, and omega terms were to avoid recalulating them every time they were needed. We included these terms in the particles which are all passed into the GPU during the parallelized update along with the neighborhood and num_neighbors members.  Collectively, these allow us to limit the number of neighbors a particle can have and and to access them and all their relevant attributes only using array indices.<p>
+        <br/>
+    </div>  
+    
+    <p>Because our spacial map relies on the standard library's hash map data structure, and we did not have the time to build a GPU compatible spacial map nor could we find one already built, we unfortunately had to keep the spacial map creation on the host, despite it's potential for parallelization. Particles are first copied back to build the spacial map between the force accumulation step and solving for incompressibility constraints. This parallization however still allowed us to increase the particle counts in our scenes from only around 10k on CPU to 200k on GPU. We find that at 150k particles, we still get approximately 1-2 frames per second depending on the chosen kernel size and number of solver iterations.</p>
+    
+    <p>Porting to CUDA also lead to an interesting bug that was difficult to diagnose. We had originally implemented planes as a class, but proting to cuda would have meant we would have needed to modify our files and functions and compile them to .cu files, which would be annoying given the way we had structured the program. We instead just replaced our implementations with structs and then add a collision function with the rest of our CUDA kernels. The would lead the simulations to blow up and again particles would be gaining large velocities. Thankfully, after looking around the scenes for a while, it was noticed that particles hitting the forward wall were the ones to first become overexcited and found that that plane's normal vector was unnormalized, which originally happened in the constructor of the plane.</p>
+    
 <h2>Extra Goodies</h2>
+    <p>In writing the new rendering engine after moving away from the starter code, we were able to learn about many cool features that we felt would make our renders less boring. Most of the following come from tutorials on the amazing <a href='https://www.learnopengl.com'>learnopengl.com</a></p>
+    
+    <h3>FPS Camera</h3>
+    <p>Originally, we had attempted to mimic the camera from projects 2 and 3, however the dimensions of the camera were always off and we didn't quite understand the camera code and openGL binding matrices. Switching to the shader dominant rendering we have now seemed to make the pipeline simpler as now we only had to worry about binding the view matrices at a single point in the pipeline. This allowed us to implement a camera with more freedom of movement and interact with it's produced matrix directly. This camera was useful in debugging and setting up scenes with a moving camera.</p>
+    
+    <h3>Skybox</h3>
+    <p>The single color clear got a bit boring after a while, so we went ahead and added a skybox. This made the scenes feel much larger than they were and went well with our fragment shader colors. Paired with moving the camera during, the skybox gives the illusion of complexity to our renders. This was done by creating a simple VAO for a cube and rendering it with perspective set to infinity.</p>
+    
+    <h3>Mesh Collisions</h3>
+    <p>We wanted to replicate the photo given the Muller, Macklin paper of the bunny taking a shower. We found a low polygon count bunny (as we didn't have an acceleartion structure in place for traingle collisions) and wrote some mesh loading code with the help of a obj parser from Assimp. Upon receivng the list of vertices and indices, we parsed these ourselves to create a new vector of triangles to the scene, which the particles would also collide with when checking for collisions. Because this wasn't a main priority, we stuck with just using the barycentric coordinates of the point of intersection as the point from which we would place the particle after collisions instead of the algorithm used for planes, causing particles to stick on the triangles after colliding.</p>
+    
+    <h3>Water Shader</h3>
+    <p>Originally, we had planned to make it our goal to implement the ellipsoid splattering technique used in the Macklin paper, but we looked at the math and didn't really understand any of it so we thohught our time would be better spent porting to CUDA. When going throught the openGL tutorials, the skybox tutorial also had a refractive shader tutorial, so we went ahead and added it in as a poor man's substitute. The results were surprisingly satisfactory at large particle counts.</p>
+    
+    <h3>Lighting</h3>
+    <p>We had to write our own lighting code to work with our shaders without the use of GLUT. Doing so really helped to enforce and clear up some of the confusion from the shaders in project 2. THis gave us direct control over lighting position, feel, material, and strength. We wrote another shader to implement the Blinn-phong shader model and added specular highlights to our water shader. Lights are rendered as small cubes. Unfortunately, I didn't find the bloom tutorial until after they were implemented and we had presented.</p>
+    
+    
 <h2>Lesson Learned</h2>
+    
+    
 <h2>Results and Render Gallery</h2>
+    <div align='middle'>
+        <iframe src="https://drive.google.com/file/d/0B9ua7AfZoEtOZXBmMmpWZGNuMlE/preview" width="640" height="427"></iframe>
+        <iframe src="https://drive.google.com/file/d/0B9ua7AfZoEtOdUloUlFMQl9MU1k/preview" width="640" height="427"></iframe>
+        <iframe src="https://drive.google.com/file/d/0B9ua7AfZoEtOQjlCM2tjT1pXYmM/preview" width="640" height="427"></iframe>
+        <iframe src="https://drive.google.com/file/d/0B9ua7AfZoEtOOUZRbVEyeEd0ODQ/preview" width="640" height="427"></iframe>
+        <iframe src="https://drive.google.com/file/d/0B9ua7AfZoEtOS3ZlS25ZSFNUdHc/preview" width="640" height="427"></iframe>
+        <iframe src="https://drive.google.com/file/d/0B9ua7AfZoEtOY2tIeXFzcGlxaGs/preview" width="640" height="427"></iframe>
+        <iframe src="https://drive.google.com/file/d/0B9ua7AfZoEtOUHJBejV0WFhRTUk/preview" width="640" height="427"></iframe>
+        <iframe src="https://drive.google.com/file/d/0B9ua7AfZoEtOY25jYTFrZ0tBeWc/preview" width="640" height="427"></iframe>
+        <iframe src="https://drive.google.com/file/d/0B9ua7AfZoEtOZlFLS2ZKWmVDa3c/preview" width="640" height="427"></iframe>
+        <iframe src="https://drive.google.com/file/d/0B9ua7AfZoEtOaUEzbV96eG83WDA/preview" width="640" height="427"></iframe>
+    </div>
+    
+<h2>Math Appendix</h2>
+    <h3>Kernel Functions</h3>
+    <p>The poly6 kernel was used for density adjustments as in Muller et al.</p>
+    
+    <p align='middle'>\(W_{poly6}(\textbf{r}, h) = \frac{315}{64\pi h^9}(h^2 - |\textbf{r}|^2)^3\)</p>
+    
+    <p>The spiky kernel was used for all gradient kernels</p>
+    
+    <p align='middle'>\(W_{spiky}(\textbf{r}, h) = \frac{15}{\pi h^6}(h - |\textbf{r}|)^3\)</p>
+    <p align='middle'>\(\nabla_{\textbf{p}}W_{spiky}(\textbf{r}, h) = \frac{45}{\pi h^6}(h-|\textbf{r}|)^2\hat{r}\)</p>
+            
 <h2>Resources and References</h2>
+    <div style='padding-left: 30px'>
+        <h3>References</h3>
+        <li><a href="http://mmacklin.com/pbf_sig_preprint.pdf">Position Based Fluids [Macklin, Muller]</a></li>
+        <li><a href="http://simulation.dongguk.edu/jeongmo/sphbubbles/sphbubbles.pdf">Bubbles Alive [Hong et al.]</a></li>
+        <li><a href="http://matthias-mueller-fischer.ch/publications/sca03.pdf">Particle-Based Fluid Simulation for Interactive Applications [Muller et al.]</a></li>
+        <li><a href='https://www.learnopengl.com'>learnopengl.com</a></li>
+
+        <h3>Resources</h3>
+        <div style='padding-left: 30px;'>
+            <h4 style='margin: 0.5em 0;'>Graphics Libraries</h4>
+                <li>OpenGL</li>
+                <li><a href='http://glew.sourceforge.net/'>GLEW</a></li>
+                <li><a href='http://www.glfw.org/'>GLFW3</a></li>
+            <h4 style='margin: 0.5em 0;'>Mesh and Texture Loading</h4>
+                <li><a href='http://assimp.sourceforge.net'>Assimp</a></li>
+                <li><a href='http://www.lonesock.net/soil.html'>SOIL</a></li>
+                <li><a href='http://www.thingiverse.com/thing:151081'>Low Poly Bunny</a></li>
+                <li><a href='http://www.blender.org'>Blender</a></li>
+            <h4 style='margin: 0.5em 0;'>Vector Math</h4>
+                <li><a href='http://glm.g-truc.net/0.9.8/index.html'>GLM</a></li>
+            <h4 style='margin: 0.5em 0;'>Parallelization</h4>
+                <li><a href='https://developer.nvidia.com/cuda-downloads'>CUDA</a></li>
+        </div>
+    </div>
+    
 <h2>Contributions</h2>
     <h4>Dillon Yao</h4>
     <ul>
@@ -189,66 +310,6 @@
         <li>Implemented Fluid Simulation Algorithm</li>
         <li>Ported code to be CUDA compatible</li>
         <li>Investigated instability solutions and alternate implementations</li>
-    </ul>
-
-
-
-
-
-
-
-
-    
-<h2>Preliminary Results</h2>
-    <p>Having the algorithm implemented, we can render scenes with a small number of particles. The following scenes were rendered by generating a 25 x 20 x 25 block of particles (~12k particles) in a 1 meter^3 cubic tank. First we have a scene with only incompressibility constraints:</p>
-    <div align='middle'>
-        <img style='margin: auto' width='500px' src='./img/fluid_no_vort.gif'>
-    </div>
-    <p>You can see that particles work to distribute the density amongst itself, spreading out like a fluid would in the tank, though it tends to stack unrealistically in corners and spreads itself very thin when sprayed, lacking the surface tension of actual fluids. We add vorticity confinement and a small correction term to prevent negative pressures from pushing particles too far apart when particles have few neighbors. The next scene adds in vorticity confinement, viscosity adjustments, as well as tensile stability correction to improve accuracy when particles have few neighbors.</p>
-    
-    <div align='middle'>
-        <img style='middle' width='500px' src='./img/fluid.gif'>
-    </div>
-    
-    <p>The strange stacking in the corners is now mostly gone and the fluid now exibits some replication of surface tension, however we are still not quite satisfied with the way particles seem gravitate towards the edges of the tank. We plan on modifying the constants that dictate the solver to improve the realism of the simulation and introduce some randomness into the plane collision code to prevent stacking in corners.</p>
-    
-    <div align='middle'>
-	<img style='middle' width='500px' src='./img/fluid_long_tank.gif'>
-    </div>
-
-    <p>The current fluid parameters also have the fluid being slightly more viscous than desired as seen by the lack of significant splash on the long end of the tank.</p>
-
-<h2>What Comes Next</h2>
-    <p>In accordance to our schedule, we seem to be right on track (maybe even slightly ahead seeing as we've only had really this weekend to work on it), having just finished week 2, we are at the point where the underlying particle model seems to be working as intended, besides some minor tweaks. We have several main features we wish to address in the next week and beyond:</p>
-    
-    <ul>
-        <li>Move the simulation from CPU to GPU using CUDA to improve simulation speed and size</li>
-        <li>Move from the starter GLUT implementation to something closer to the GLFW based library we've used for other projects to allow for better user interaction and more control over views</li>
-        <li>Add collideable meshes</li>
-        <li>Add surface texturing to the water using the ellipsoid splattering technique mentioned in Macklin</li>
-    </ul>
-    
-    <p>Our next step will likely be moving the simulation to the GPU using a library like CUDA. This is mainly so we can handle more larger scenes so better see the impact of our tweaks to particle cohesion in a shorter timespan. Neither of us have experience with CUDA so we expect this process to be somewhat lengthy, but we believe the effort to be necessary and worth it.</p>
-    
-    <p>We also wish to attempt to replace the current GLUT implementation with an engine that more closely replicates the CGL library we've been using for class projects. This would (1), more easily allow us to implement mesh rendering as we would have an example on how to do so and (2) allow us to become much more familiar on how the application is actually running and what openGL calls it is actually making. Additionally, the project code seems to have trouble compiling on osx, seg faulting on the first openGL function call. This error is currently still undiagnosed, but our current test build with the new engine lacks this problem thanks to GLEW, allowing more flexibility with working remotely and at home.</p>
-    
-    <p>With the change mentioned in the previous point, adding collideable meshes would be simpler as the code from projects 2 to 4 have samples from which we can draw on to create our custom renderer. The dae parser would be extremely useful for creating new scenes in blender.</p>
-    
-    <p>We would love to be able to add water texturing using the methods of Yu and Turk, and van der Laan. This seems unlikely for the near future, but we believe is reasonable to finish by the final due date (or after even, this project is quite fun to develop).</p>
-    
-    <p>Hopefully, we can get points 1-3 done by the end of this week as good progress has already been made on point 2. Adding bouyant meshes as originally intended may become a bit of a stretch goal as we could not find much documentation on the topic, but we shall see what happens after we have implemented collideable objects that are affected by physics. An additional feature could be added however in response to user input such as camera panning and rotation, giving momentum to the fluid.</p>
-    
-<h2>Deliverables:</h2>
-    <ul>
-        <li>
-            <a href='https://docs.google.com/a/berkeley.edu/presentation/d/1gxRZjC3kC4wY7U23nX9OuJviDS6yqyzFEgxTwQX7XWw/edit?usp=sharing' target='_blank'>Presentation Slides</a>
-        </li>
-	<li list-item-style: none>
-	    <video controls='controls' width='100%' src='img/flooid.mp4'>	
-	</li>
-        <li>
-            <a href='img/flooid.mp4' target='_blank'_>Progress Video</a>
-        </li>
     </ul>
     
 </div>
