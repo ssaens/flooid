@@ -243,6 +243,15 @@
     
     
 <h2>Lesson Learned</h2>
+    <p>In rewriting the renderer code from scratch and learning how the renders from prior projects worked, we learned a great deal about writing visual applications. At the largest level, we learned how the openGL pipeline works, from initialization, to binding of the projection, model, and view matrices, to creating VAO's, EBO's, and VBO's, to writing GLSL shaders. The learnopengl tutorials also gave many small tips that were fun and interesting to think about how to utilize openGL to achieve specific effects. Finally just getting used to openGL's stack based call system was crucial to speeding up future developement.</p>
+    
+    <p>Using CUDA to parallelize, we learned a useful skill in how to write programs for the GPU, building with cmake, and integrating with existing projects. This made us more conscious about the memory we were using and looked for ways to balance repeating function calls with storing too much memory to copy to and from the GPU.</p>
+    
+    <p>On the side, this has also taught us about building and maintaining large projects. CMake made working both at home and in the lab relatively painless as it handled OS rules. CMake also made adding dependencies and linking the many libraries we used relatively easy as well, able to split the project into subdirectories under the example of the cmake files from our previous projects.</p>
+    
+    <p>We also learned for our future endeavors to build in I/O argument support for loading project parameters. We neglected that as neither of us has much experience with IO in cpp, but meant every time we wished to tweak the scene for a new render, we needed to recompile the project, though with cmake, the wait time was not too bad.</p>
+    
+    <p>This project also gave a different look at graphics progams than the other projects from class, which largely focussed on the math. Here we were encouraged to experiment and just play around, adding meaningless but fun things like skyboxes or colorful shaders. It ended up giving me at least many ideas for new projects that I'm excited to try out.</p>
     
     
 <h2>Results and Render Gallery</h2>
@@ -293,6 +302,8 @@
                 <li><a href='http://glm.g-truc.net/0.9.8/index.html'>GLM</a></li>
             <h4 style='margin: 0.5em 0;'>Parallelization</h4>
                 <li><a href='https://developer.nvidia.com/cuda-downloads'>CUDA</a></li>
+            <h4 stype='margin: 0.5em 0;'>Architecture</h4>
+                <li>CS184 Projects 2 and 3 for view Implementation and cmake starters</li>
         </div>
     </div>
     
