@@ -1,116 +1,256 @@
 <html>
 <head>
 <style>
-  body {
-    padding: 100px;
-    width: 1000px;
-    margin: auto;
-    text-align: left;
-    font-weight: 300;
-    font-family: 'Open Sans', sans-serif;
-    color: #121212;
-  }
-  h1, h2, h3, h4 {
-    font-family: 'Source Sans Pro', sans-serif;
-  }
+      body {
+        padding: 100px;
+        width: 1000px;
+        margin: auto;
+        text-align: left;
+        font-weight: 300;
+        font-family: 'Open Sans', sans-serif;
+        color: #121212;
+      }
+      h1, h2, h3, h4 {
+        font-family: 'Source Sans Pro', sans-serif;
+      }
+    pre {
+        padding: 10px;
+        margin: 0;
+        background: rgb(20, 23, 27);
+        color: white;
+        line-height: 1.3em;
+    }
+    k {
+        color: rgb(253, 148, 8);    
+    }
+    
+    t {
+        color: lightblue;
+    }
+
 </style>
-<title>CS 184 Final Project Proposal</title>
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+<title>CS 184 Final Project</title>
 </head>
 <body>
 
-<h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2017</h1>
-<h1 align="middle">Final Project Proposal</h1>
-<h1 align="middle">Fluid Simulation</h1>
-<h2 align="middle">Dillon Yao, CS184-aai</h2>
-<h2 align="middle">Tony Situ, CS184-acl</h2>
+<h1 align="middle">Final Project Writeup</h1>
+<h2 align="middle">3D Position Based Fluid Simulation</h2>
+<h3 align="middle">Dillon Yao, CS184-aai</h3>
+<h3 align="middle">Tony Situ, CS184-acl</h3>
 
-<br><br>
-
+    <br/>
 <div>
 
-<h2 align="middle">Title, Summary and Team Members</h2>
-<!-- Title, Summary and Team Members
-Provide us a descriptive title, 2-3 sentences that summarize your project, and list your two team members. -->
-<h4 align="middle"> Fluid Simulation</h4>
-<br>
-<h4 align="middle"> Summary </h4>
-<p>We will be building a 3D particle based fluid simulator that can render realistic demo scenes of fluid interaction and movement. Ideally, the fluid will also interact with physical objects with different bouyancies.</p>
-<h4 align="middle"> Team Members</h4>
-<p>Dillon Yao</p>
-<p>Tony Situ</p>
+<h2>Abstract</h2>
+    <p>In this project we built a 3D Position Based Fluid Simulator based off of <a href='http://mmacklin.com/pbf_sig_preprint.pdf'>Position Based Fluids [Macklin, Muller]</a>.  The end product is a program capable of rendering particles with fluid properties such as incompressibility, tensile instability, vorticity, and viscosity. In addition, particle-plane collisions were also implemented to allows for confinement of particles.  The next major step was upgrading from the deprecated GLUT library to OpenGL 3.3 which required a large architecture overhaul.  However, thanks to this upgrade we now had access to variety of features that parallelize particle initialization, rendering, and shading leading to much more efficiency on the graphics end.  Afterwards many changes were made to the UI/UX such as adding a camera, mapping a cubemap as a background view, adding a skybox light, and adding a collection of shaders (Blinn Phong, Refractive, and Velocity) to the particles.  To scale the program even further we upgraded to CUDA so that the work of the algorithm's main update step could be parallelized and distributed amongst many GPU cores.  This enabled us to render simulations with hundreds of thousands of particles.  With the extra time we had left over, we also implemented spherical collisions and rendered a few scenes featuring that feature.</p>
+    
+<h2>Technical Approach and Implementation</h2>
+    <p>First came the particle, by the first milestone we had developed the following struct for local computaiton and rendering:</p>
+    
+    <div style='columns: 2'>
+        <pre>
+        <k>struct</k> Particle {
+            <t>vec3</t> position;
+            <t>vec3</t> predicted_position;
+            <t>vec3</t> delta_position;
 
-<h2 align="middle">Problem Description</h2>
-<!-- Problem Description
-Here you should provide the context for your idea. Describe the problem that you are trying to solve, why it is important, where it is challenging. Give us a general idea on how you are going to solve it. -->
-<p>3D particle based fluid simulation is a widely explored field in computer graphics with a variety of techinical challenges 
-  and potential optimizations.  Simulating realistic fluid motion has to take into account an array of issues in terms of computational
-  complexity and physical constraints such as enforcing fluid properties e.g. incompressibility, surface tension, and vorticity.  
-  Developing and improving fluid simulation methods would have a huge impact in a variety of outside of immediately obvious applications
-  in computer graphics.  Simulating fluids is important to industries like animation, civil engineering, chemical engineering, materials 
-  engineering, etc. Our approach to tackling the challenge of fluid simulation will follow research papers published on the subject that 
-  identify various mathematical methods that best emulate the properties of fluids and to deal with computation complexity we will be 
-  leveraging the parallelizability of particle computation in fluids.</p>
+            <t>vec3</t> velocity;
+            <t>vec3</t> force;
+
+            <t>vector&lt;Particle *&gt;</t> neighborhood;
+        }
+        </pre>
+        <p>The struct keeps track of particle positions, the predicted position of the particle for the next time step, a incompressibility pressure correction term <code>delta_pos</code>, as well as the current velocity and force acting on the particle. Additionally, the algorithms presented to enforce incompressibility require knowledge of the particles neighbors, for which we built a spatial map similar to that in the project 4 cloth simulator to quickly search for the particles in range of the particle of interest.<p>
+        <br/>
+    </div>
+
+    <p>However, to take advantage of CUDA, the structure had to be modifed into the following:</p>
+
+    <div style='columns: 2'>
+        <pre>
+        <k>struct</k> Particle {
+            <t>vec3</t> position;
+            <t>vec3</t> pred_position;
+            <t>vec3</t> delta_position;
+            <t>vec3</t> velocity;
+            <t>vec3</t> omega;
+            
+            <t>float</t> mass;
+            <t>float</t> lambda;
+            <t>float</t> rho;
+
+            <t>int</t> neighborhood[MAX_NEIGHBORS];
+            <t>int</t> num_neighbors;
+        }
+        </pre>
+        <p>The major changes to note are the removal of the force members, since we decided to modify velocity on demand rather than storing a forces in the particle.  The addition of the mass, lambda, rho, and omega terms were a result of the device not having access to data stored in host memory during the update calculations.  We included these terms in the particles which are all passed into the GPU during the parallelized update along with the neighborhood and num_neighbors members.  Collectively, these allow us to limit the number of neighbors a particle can have and and to access them by array indices since the spatial map is built in host memory and therefore not visible from the scope of the device. <p>
+        <br/>
+    </div>  
+    
+    <p>Having our particle representation, we implemented the following algorithm:</p>
+    
+    <pre>
+        <k>for</k> Particle i in particles: 
+            <t>accumulate</t> forces from external accelerations
+            <t>update</t> the particle's velocity based on accumulated forces
+            <t>calculate</t> the particle's predicted position in the next time step
+        <k>for</k> Particle i in particles:
+            <t>find</t> all neighboring particles (within a constant radius <k>KERNAL_RADIUS</k>)
+        <k>for</k> i in range(SOLVER_ITERS):
+            <k>for</k> Particle i in particles:
+                <t>calculate</t> a correction vector <k>delta_p</k> to maintain incompressibility
+                <t>adjust</t> the particle's position by adding <k>delta_p</k>
+                <t>detect</t> collisions and respond
+        <k>for</k> Particle i in particles:
+            <t>update</t> velocity to be the change in particle position over the timestep
+            <t>apply</t> vorticity confinement and adjust for viscosity
+            <t>update</t> the position to be the predicted position
+    </pre>
+    
+    <p>First forces were accumulated on the particle and its predicted position calculated using explicit Euler. Afterwards, using our spacial map, we find all particles in the surrounding neighborhood of radius <code><k>KERNEL_RADIUS</k></code>. At this point, we run multiple iterations of our solver to try and satisfy incompressibility constraints by calculating the correction vector <code>delta_pos</code>. This requires the use of two smoothing kernels. We use the poly6 kernel to perform density operations and the spiky kernel for gradient calculations. These kernels distribute the pressure within a neighborhood of particles to promote incompressibility and prevent particles from being too clumped. The solver runs for multiple iterations to improve the particle spacing. After running the solver, we adjust the velocity of the particle to be the distance the particle is expected to travel over the timestep, applying additional corrections to conserve vorticity and give viscosity to the liquid. Finally we move the particle to its predicted position.</p>
+
+<h4>Force Accumulation</h4>
+    <p>For this step we used explicit Euler to accumulate external forces on the particle and then update their position's based on the particle's current position and velocity.</p>
+
+    <p align="middle">\(\textbf{v}_{i} \Leftarrow \textbf{v}_{i} + \Delta \textbf{f}_{ext}(\textbf{x}_{i})\)<p>
+    <p align="middle">\(\textbf{x}_{i}^* \Leftarrow \textbf{x}_{i} + \Delta t \textbf{v}_{i}\)</p>
+
+<h4>Determining Neighboring Particles</h4>
+    <p>The next step is to find each Particles neighbors in an efficient manner for following calcuations in the update step.  For this step we followed the procedure outlined in <a href="http://developer.download.nvidia.com/compute/cuda/2_2/sdk/website/projects/particles/doc/particles.pdf"> Cuda Particles [Green] </a>.  Our interpretation of this approach divides the 3D space of the simulation into bins or voxels and particles are hashed into a voxel based on their positions.  With this hash function we can build a spatial map between a hash key and its corresponding bin, where particles that lie in the same bin should hash to the same key.  We set the bin size to be the same as the particle radius.  We note that for any given particle all candidate neighbor particles lie within the space immediately surrounding the bin corresponding to the given particle's hash key.  This means we need to search only 27 bins and the particles they contain to ensure that we find all nieghbors for a given particle.  The cutoff distance to be considered a neighbor is chosen empiracally.</p>
+    
+
+<h4>Enforcing Incompressibility</h4>
+    <p>To enforce a constant density in the particles to emulate fluid incompressibility we evaluate a series of equations based off a particle and it's neighbors calculated from the last step.  The result of this is a correctional vector, \(\Delta \textbf{p}\), to be applied to each particle.  Firstly we express the density constraint on the <em>ith</em> particle as a function of the position of itself and its neighbors.</p>
+
+    <p align="middle">\(C_{i}(\textbf{p}_{1}, ...,\textbf{p}_{n}) = \frac{\rho_{i}}{\rho_{0}} - 1\)<p>
+
+    <p>From this density constraint we evaluate the following scaling factor to apply the correctional force.  Note that \(\epsilon\) is an empirically chosen relaxation parameter.</p>
+
+    <p align="middle">\(\lambda_{i} = -\frac{C_{i}(\textbf{p}_{1}, ...,\textbf{p}_{n})}{\Sigma_{k}\lvert\nabla_{\textbf{p}_{k}}C_{i}\rvert^2 + \epsilon}\)
+
+    <p> Now with the scaling factor we can write the total position update, \(\Delta \textbf{p}_{i}\),  for a given particle \(\textbf{p}_{i}\) as:</p>
+
+    <p align="middle"> \(\Delta \textbf{p}_{i} = \frac{1}{\rho_{0}} \Sigma_{j}(\lambda_{i} + \lambda_{j})\nabla W(\textbf{p}_{i} - \textbf{p}_{j}, h)\)</p>
+
+    <p>We also note that due to this term, particles do not have to implement self collision since enforcing incompressibility already accomplishes the former.</p>
 
 
-<h2 align="middle">Goals and Deliverables</h2>
-<!-- Goals and Deliverables
-This is the most important part of your proposal. You should carefully think through what you are trying to accomplish, what results you are going for, and why you think you can accomplish those goals. For example:
-Since this is a graphics class you will likely define the kind of images you will create (e.g. including a photo of a new lighting effect you will simulate).
+<h4>Tensile instability</h4>
+    <p>Since many of the calculations in the simulation depend on a given particle's neighbors, a deficiency of neighbors leads to noticeble particle clumping.  To compensate for this, we add an aritfical pressure term specified in terms of the smoothing kernel, \(W\).</p>
 
-If you are working on an interactive system, describe what demo you will create.
+    <p align="middle">\(s_{corr} = -k (\frac{W(\textbf{p}_{i} - \textbf{p}_{j}, h)}{W(\Delta\textbf{q}, h)})^2\)</p>
 
-Define how you will measure the quality / performance of your system (e.g. graphs showing speedup, or quantifying accuracy). It may not be possible to define precise target metrics at this time, but we encourage you to try. 
+    <p>\(\Delta q\) is a point located a fixed distance inside the smoothing kernel radius and \(k\) is a small positive cosntant, both of which are empiracally determined. This correctional term ensures that particle density is slightly lower than rest density.  Furthermmore this also causes paarticles to attract their neighbors producing surface tension effects seen in fluids.</p>
 
-What questions do you plan to answer with your analysis?
 
-You should break this section into two parts: (1) what you plan to deliver, and (2) what you hope to deliver. In (1), describe what you believe you must accomplish to have a successful project and achieve the grade you expect (i.e. your baseline plan -- planning for some unexpected problems would make sense). In (2), describe what you hope to achieve if things go well and you get ahead of schedule (your aspirational plan).-->
-  
-  <h4>Planned Deliverables</h4>
-  <p>At the end of this project, we expect to have a 3D position based particle fluid simulator. We will create a demo scene showing 
-    a classic fluid tank with static objects (unaffected by physics) and show how the fluid interacts with these objects</p>
-  <p>The quality of the simulation can be measured by mirroring the demo scene with a real life scene and compare the two side by side, 
-    evaluating for realism.</p>
-  
-  <h4>Hopeful Deliverables</h4>
-  <p>We hope to be able to simulate as well fluid interactions with bouyant materials realistically (i.e. ojects floating or sinking)</p>
-  <p>Again the quality of the system will be difficult to quantify, but a comparison between a modeled scene and real scene is a start</p>
-  <p>We also hope to be able to texture the fluid to appear as a body of liquid rather than the underlying particle representation</p>
 
-<h2 align="middle">Schedule</h2>
-<!-- Schedule
-In this section you should organize and plan the tasks and subtasks that your team will execute. Since presentations are ~4 weeks from the due-date of the proposal, you should include a set of tasks for every week. -->
-<table>
-    <tr>
-    <th>Week 1</th>
-    <td>Learn openGL, Begin particle model of fluid</td>
-  </tr>
-  <tr>
-    <th>Week 2</th>
-    <td>Complete underlying particle model and ensure particles interact as expected</td>
-  </tr>
-  <tr>
-    <th>Week 3</th>
-    <td>Add bouyancy and macro object interactions</td>
-  </tr>
-  <tr>
-    <th>Week 4</th>
-    <td>Consider performance improvements and texturing of fluid</td>
-</table>
+<h4>Vorticity Confinement and Viscosity</h4>
+    <p>As noted by Müller et al, position based methods such as this one often have an issue with introducing additional damping which produces undesirable results in the simulation.  This numerical dissapation is countered by vorticity confinement to replace any lost energy from the system.  We first implemented the base procedure outlined by Müller et al:
 
-<h2 align="middle">Resources</h2>
-<!-- Resources
-List what resources, e.g. books, papers and/or online resources that are references for your project. List the computing platform, hardware and software resources that you will use for your project. You have a wide latitude here to use what you have access to, but be aware that you will have to support and trouble-shoot on your platform yourselves. If you are starting from an existing piece of code or system, describe and provide a pointer to it here. -->
-  <h4>Papers</h4>
-        <p><a href='http://mmacklin.com/pbf_sig_preprint.pdf'>Position Based Fluids</a></p> 
-  <p><a href='http://matthias-mueller-fischer.ch/publications/sca03.pdf'>Particle-Based Fluid Simulation for Interactive Applications</a></p>
-    <p><a href='http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=EC42C77C187FF45BB1274BA438E087CA?doi=10.1.1.101.7883&rep=rep1&type=pdf'>Screen Space Meshes</a></p>
-  <p><a href='http://www.cs.rug.nl/~roe/publications/fluidcurvature.pdf'></a></p>
-  <p><a href='http://developer.download.nvidia.com/presentations/2010/gdc/Direct3D_Effects.pdf'></a></p>
-  <h4>Computing Platform/Hardware</h4>
-    <p>MacbookPro, s349 Computers</p>
-  <h4>Software</h4>
-    <p>CLion IDE, openGL, SDL, Krakatoa</p>
+    <p align="middle">\(\omega_{i} = \nabla \times \textbf{v} = \Sigma_{j}\textbf{v}_{ij} \times \nabla_{\textbf{p}_{j}}W(\textbf{p}_{i}, \textbf{p}_{j}, h)\)</p>
 
+    <p align="middle">\(\textbf{f}_{i}^{vorticity} = \epsilon (\textbf{N} \times \omega_{i})\)</p>
+
+    <p> Then we adapted our vorticity model as documented in <a href="http://simulation.dongguk.edu/jeongmo/sphbubbles/sphbubbles.pdf">Bubbles Alive [Hong et al.]</a></p>
+
+    <p align="middle">\(\textbf{p}_{\oplus} = \frac{m_{i}\textbf{p}_{i} + m_{j}\textbf{p}_{j}}{m_{i} + m_{j}}\)</p>
+    <p align="middle">\(\eta = \textbf{p}_{\oplus} - \textbf{p}_{i}\)</p>
+
+    <p>Finally, to emphasize coherent motion in the fluid we add XSPH viscosity with an empirically chosen parameter, \(c\) :</p>
+
+    <p align="middle">\(\textbf{v}_{i}^{new} = \textbf{v}_{i} + c\Sigma_{j}\textbf{v}_{ij}\cdot W(\textbf{p}_{i} - \textbf{p}_{j}, h)\)</p>
+
+<h4>Collisions<h4>
+
+
+    <p>To create a basic scene, we also implemented basic particle-plane collisions. If we find a particle is predicted to pass through a plane (its predicted position and current position are on opposite sides of the plane), we simply move the particle along the plane's normal until it is back on the correct side of the plane, adding a small offset <code><k>SURFACE_OFFSET</k></code> to prevent it from colliding immediately again.</p>
+
+
+<h2>OpenGL Upgrade and Rendering Parallelization</h2>
+<h2>CUDA Parallelization<h2>
+<h2>Extra Goodies</h2>
+<h2>Lesson Learned</h2>
+<h2>Results and Render Gallery</h2>
+<h2>Resources and References</h2>
+<h2>Contributions</h2>
+    <h4>Dillon Yao</h4>
+    <ul>
+        <li>Implemented Fluid Simulation Algorithm</li>
+        <li>Upgraded from GLUT to OpenGL 3.3</li>
+        <li>Added flyby camera and water shaders</li>
+        <li>Included CMake Support</li>
+        <li>Ported code to be CUDA compatible</li>
+    </ul>
+    <h4>Tony Situ</h4>
+    <ul>
+        <li>Implemented Fluid Simulation Algorithm</li>
+        <li>Ported code to be CUDA compatible</li>
+        <li>Investigated instability solutions and alternate implementations</li>
+    </ul>
+
+
+
+
+
+
+
+
+    
+<h2>Preliminary Results</h2>
+    <p>Having the algorithm implemented, we can render scenes with a small number of particles. The following scenes were rendered by generating a 25 x 20 x 25 block of particles (~12k particles) in a 1 meter^3 cubic tank. First we have a scene with only incompressibility constraints:</p>
+    <div align='middle'>
+        <img style='margin: auto' width='500px' src='./img/fluid_no_vort.gif'>
+    </div>
+    <p>You can see that particles work to distribute the density amongst itself, spreading out like a fluid would in the tank, though it tends to stack unrealistically in corners and spreads itself very thin when sprayed, lacking the surface tension of actual fluids. We add vorticity confinement and a small correction term to prevent negative pressures from pushing particles too far apart when particles have few neighbors. The next scene adds in vorticity confinement, viscosity adjustments, as well as tensile stability correction to improve accuracy when particles have few neighbors.</p>
+    
+    <div align='middle'>
+        <img style='middle' width='500px' src='./img/fluid.gif'>
+    </div>
+    
+    <p>The strange stacking in the corners is now mostly gone and the fluid now exibits some replication of surface tension, however we are still not quite satisfied with the way particles seem gravitate towards the edges of the tank. We plan on modifying the constants that dictate the solver to improve the realism of the simulation and introduce some randomness into the plane collision code to prevent stacking in corners.</p>
+    
+    <div align='middle'>
+	<img style='middle' width='500px' src='./img/fluid_long_tank.gif'>
+    </div>
+
+    <p>The current fluid parameters also have the fluid being slightly more viscous than desired as seen by the lack of significant splash on the long end of the tank.</p>
+
+<h2>What Comes Next</h2>
+    <p>In accordance to our schedule, we seem to be right on track (maybe even slightly ahead seeing as we've only had really this weekend to work on it), having just finished week 2, we are at the point where the underlying particle model seems to be working as intended, besides some minor tweaks. We have several main features we wish to address in the next week and beyond:</p>
+    
+    <ul>
+        <li>Move the simulation from CPU to GPU using CUDA to improve simulation speed and size</li>
+        <li>Move from the starter GLUT implementation to something closer to the GLFW based library we've used for other projects to allow for better user interaction and more control over views</li>
+        <li>Add collideable meshes</li>
+        <li>Add surface texturing to the water using the ellipsoid splattering technique mentioned in Macklin</li>
+    </ul>
+    
+    <p>Our next step will likely be moving the simulation to the GPU using a library like CUDA. This is mainly so we can handle more larger scenes so better see the impact of our tweaks to particle cohesion in a shorter timespan. Neither of us have experience with CUDA so we expect this process to be somewhat lengthy, but we believe the effort to be necessary and worth it.</p>
+    
+    <p>We also wish to attempt to replace the current GLUT implementation with an engine that more closely replicates the CGL library we've been using for class projects. This would (1), more easily allow us to implement mesh rendering as we would have an example on how to do so and (2) allow us to become much more familiar on how the application is actually running and what openGL calls it is actually making. Additionally, the project code seems to have trouble compiling on osx, seg faulting on the first openGL function call. This error is currently still undiagnosed, but our current test build with the new engine lacks this problem thanks to GLEW, allowing more flexibility with working remotely and at home.</p>
+    
+    <p>With the change mentioned in the previous point, adding collideable meshes would be simpler as the code from projects 2 to 4 have samples from which we can draw on to create our custom renderer. The dae parser would be extremely useful for creating new scenes in blender.</p>
+    
+    <p>We would love to be able to add water texturing using the methods of Yu and Turk, and van der Laan. This seems unlikely for the near future, but we believe is reasonable to finish by the final due date (or after even, this project is quite fun to develop).</p>
+    
+    <p>Hopefully, we can get points 1-3 done by the end of this week as good progress has already been made on point 2. Adding bouyant meshes as originally intended may become a bit of a stretch goal as we could not find much documentation on the topic, but we shall see what happens after we have implemented collideable objects that are affected by physics. An additional feature could be added however in response to user input such as camera panning and rotation, giving momentum to the fluid.</p>
+    
+<h2>Deliverables:</h2>
+    <ul>
+        <li>
+            <a href='https://docs.google.com/a/berkeley.edu/presentation/d/1gxRZjC3kC4wY7U23nX9OuJviDS6yqyzFEgxTwQX7XWw/edit?usp=sharing' target='_blank'>Presentation Slides</a>
+        </li>
+	<li list-item-style: none>
+	    <video controls='controls' width='100%' src='img/flooid.mp4'>	
+	</li>
+        <li>
+            <a href='img/flooid.mp4' target='_blank'_>Progress Video</a>
+        </li>
+    </ul>
+    
+</div>
 </body>
 </html>
-
