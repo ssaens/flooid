@@ -48,7 +48,7 @@
     <p>In this project we built a 3D Position Based Fluid Simulator based off of <a href='http://mmacklin.com/pbf_sig_preprint.pdf'>Position Based Fluids [Macklin, Muller]</a>.  The end product is a program capable of rendering particles with fluid properties such as incompressibility, tensile instability, vorticity, and viscosity. In addition, particle-plane collisions were also implemented to allows for confinement of particles.  The next major step was upgrading from the deprecated GLUT library to OpenGL 3.3 which required a large architecture overhaul.  However, thanks to this upgrade we now had access to variety of features that parallelize particle initialization, rendering, and shading leading to much more efficiency on the graphics end.  Afterwards many changes were made to the UI/UX such as adding a camera, mapping a cubemap as a background view, adding a skybox light, and adding a collection of shaders (Blinn Phong, Refractive, and Velocity) to the particles.  To scale the program even further we upgraded to CUDA so that the work of the algorithm's main update step could be parallelized and distributed amongst many GPU cores.  This enabled us to render simulations with hundreds of thousands of particles.  With the extra time we had left over, we also implemented spherical collisions and rendered a few scenes featuring that feature.</p>
     
 <h2>Technical Approach and Implementation</h2>
-    <p>First came the particle, by the first milestone we had developed the following struct for local computaiton and rendering:</p>
+    <p>First came the particle, by the first milestone we had developed the following struct for local computation and rendering:</p>
     
     <div style='columns: 2'>
         <pre>
@@ -96,7 +96,7 @@
     <p align="middle">\(\textbf{x}_{i}^* \Leftarrow \textbf{x}_{i} + \Delta t \textbf{v}_{i}\)</p>
 
 <h4>Determining Neighboring Particles</h4>
-    <p>The next step is to find each Particles neighbors in an efficient manner for following calcuations in the update step.  For this step we followed the procedure outlined in <a href="http://developer.download.nvidia.com/compute/cuda/2_2/sdk/website/projects/particles/doc/particles.pdf"> Cuda Particles [Green] </a>.  Our interpretation of this approach divides the 3D space of the simulation into bins or voxels sized relative to the kernel radius used, \(h\), and particles are hashed into a voxel based on their positions.  With this hash function we can build a spatial map between a hash key and its corresponding bin, where particles that lie in the same bin should hash to the same key. We note that for any given particle all candidate neighbor particles lie within the space immediately surrounding the bin corresponding to the given particle's hash key.  This means we need to search only 27 bins and the particles they contain to ensure that we find all neighbors for a given particle.  The cutoff distance to be considered a neighbor is chosen empirically. We came up with the following hash function:</p>
+    <p>The next step is to find each Particles neighbors in an efficient manner for following calculations in the update step.  For this step we followed the procedure outlined in <a href="http://developer.download.nvidia.com/compute/cuda/2_2/sdk/website/projects/particles/doc/particles.pdf"> CUDA Particles [Green] </a>.  Our interpretation of this approach divides the 3D space of the simulation into bins or voxels sized relative to the kernel radius used, \(h\), and particles are hashed into a voxel based on their positions.  With this hash function we can build a spatial map between a hash key and its corresponding bin, where particles that lie in the same bin should hash to the same key. We note that for any given particle all candidate neighbor particles lie within the space immediately surrounding the bin corresponding to the given particle's hash key.  This means we need to search only 27 bins and the particles they contain to ensure that we find all neighbors for a given particle.  The cutoff distance to be considered a neighbor is chosen empirically. We came up with the following hash function:</p>
     
     <pre>
     <t>int</t> ParticleManager::hash_bin(<t>glm::ivec3</t> pos) {
@@ -108,7 +108,7 @@
 
     <p align="middle">\(C_{i}(\textbf{p}_{1}, ...,\textbf{p}_{n}) = \frac{\rho_{i}}{\rho_{0}} - 1\)<p>
     
-    <p>\(\rho_0\) is the rest density of the fluid, which is found imperically. The density \(\rho_i\) of a particle is found using the standard SPH estimator:</p>
+    <p>\(\rho_0\) is the rest density of the fluid, which is found emperically. The density \(\rho_i\) of a particle is found using the standard SPH estimator:</p>
     
     <p align='middle'>\(\rho_{i} = \sum_j m_j W_(\textbf{p}_i - \textbf{p}_j, h)\)</p>
 
@@ -131,16 +131,16 @@
     </div>
         
 <h4>Tensile instability</h4>
-    <p>Since many of the calculations in the simulation depend on a given particle's neighbors, a deficiency of neighbors leads to noticeble particle clumping.  To compensate for this, we add an aritfical pressure term, \(s_{corr}\) added to the lambda values in the coefficient of the last equation. specified in terms of the smoothing kernel, \(W\).</p>
+    <p>Since many of the calculations in the simulation depend on a given particle's neighbors, a deficiency of neighbors leads to noticeable particle clumping.  To compensate for this, we add an artificial pressure term, \(s_{corr}\) added to the lambda values in the coefficient of the last equation. specified in terms of the smoothing kernel, \(W\).</p>
 
     <p align="middle">\(s_{corr} = -k (\frac{W(\textbf{p}_{i} - \textbf{p}_{j}, h)}{W(\Delta\textbf{q}, h)})^2\)</p>
 
-    <p>\(\Delta q\) is a point located a fixed distance inside the smoothing kernel radius and \(k\) is a small positive cosntant, both of which are empirically determined. This correctional term ensures that particle density is slightly lower than rest density.  Furthermmore this also causes particles to attract their neighbors producing surface tension effects seen in fluids.</p>
+    <p>\(\Delta q\) is a point located a fixed distance inside the smoothing kernel radius and \(k\) is a small positive constant, both of which are empirically determined. This correctional term ensures that particle density is slightly lower than rest density.  Furthermore this also causes particles to attract their neighbors producing surface tension effects seen in fluids.</p>
 
 
 
 <h4>Vorticity Confinement and Viscosity</h4>
-    <p>As noted by Muller et al, position based methods such as this one often have an issue with introducing additional damping which produces undesirable results in the simulation.  This numerical dissapation is countered by vorticity confinement to replace any lost energy from the system.  We first implemented the base procedure outlined by Muller et al:
+    <p>As noted by Muller et al, position based methods such as this one often have an issue with introducing additional damping which produces undesirable results in the simulation.  This numerical dissipation is countered by vorticity confinement to replace any lost energy from the system.  We first implemented the base procedure outlined by Muller et al:
 
     <p align="middle">\(\omega_{i} = \nabla \times \textbf{v} = \sum_{j}\textbf{v}_{ij} \times \nabla_{\textbf{p}_{j}}W(\textbf{p}_{i} - \textbf{p}_{j}, h)\)</p>
 
@@ -156,7 +156,7 @@
 
     <p align="middle">\(\textbf{v}_{i}^{new} = \textbf{v}_{i} + c\Sigma_{j}\textbf{v}_{ij}\cdot W(\textbf{p}_{i} - \textbf{p}_{j}, h)\)</p>
     
-    <p>The vorticity model gave us a large amount of trouble for a great deal of time as whenever the additional velocity was added back into the system, the simulation tended to blow up and particles would gain extremely large velocities seemingly out of nowhere. By adding a clamp to the maximum about of force that the voritcity adjustment could add and lowering the coefficient with which this force is weighted, we were able to limit this explosion while still being able to see the effects of vorticity confinement. This increases the realism of the render and helps in reducing the stacking effect from before.</p>
+    <p>The vorticity model gave us a large amount of trouble for a great deal of time as whenever the additional velocity was added back into the system, the simulation tended to blow up and particles would gain extremely large velocities seemingly out of nowhere. By adding a clamp to the maximum about of force that the vorticity adjustment could add and lowering the coefficient with which this force is weighted, we were able to limit this explosion while still being able to see the effects of vorticity confinement. This increases the realism of the render and helps in reducing the stacking effect from before.</p>
     
     <div align='middle'>
         <img src='img/fluid.gif' width=400>
@@ -168,7 +168,7 @@
     
     <p>We extended this to triangles collisions as well. We use the Moller-Trumbore algorithm to identify the time of collision as well as the barycentric coordinates of the point of intersection, treating the particle as a ray originating at its current position and moving in the direction of its predicted position. If we see the particle does pass through the plane in this timestep, we check if the barycentric coordinates lie within the triangle body, and if so, we use the same collision procedure as for planes save for pushing the particle up from the collision point, not from the projection of the predicted particle to the triangle surface, mostly for programming ease reasons. This unfortunately leads particles to stick to triangle faces, but it is relatively simple to swap this collision code out for that of the planes.</p>
     
-    <p>As an extra, we added sphere collisions as well. Again we check if a particle ends up on opposite sides of the sphere during a timestep. If so, we simple take the particles predicted position and project it alonga sphere normal to the surface of the sphere. Depending on the direction of travel, we give the predicted position a small offset of <code><k>SURFACE_OFFSET</k></code> in the appropriate direction.</p>
+    <p>As an extra, we added sphere collisions as well. Again we check if a particle ends up on opposite sides of the sphere during a timestep. If so, we simple take the particles predicted position and project it along a sphere normal to the surface of the sphere. Depending on the direction of travel, we give the predicted position a small offset of <code><k>SURFACE_OFFSET</k></code> in the appropriate direction.</p>
 
 
 <h3>OpenGL VAO's and Rendering Parallelization</h3>
@@ -192,17 +192,17 @@
         frag_pos = pos + offset;
     }</pre>
     
-    <p>Because the entire array of particle structs is passed in, in the fragment shader, we can also read additional inputs such as the particle's velocity, curl, neighbors, etc. for additional fun shaders. Because these shaders run in parallel on the GPU, lighting effects such as blinn-phong shading and drawing can then be done in parallel, increasing the number of particles we could handle and aesthetic features we could add to the model.</p>
+    <p>Because the entire array of particle structs is passed in, in the fragment shader, we can also read additional inputs such as the particle's velocity, curl, neighbors, etc. for additional fun shaders. Because these shaders run in parallel on the GPU, lighting effects such as Blinn-Phong shading and drawing can then be done in parallel, increasing the number of particles we could handle and aesthetic features we could add to the model.</p>
     
 <h3>CUDA Parallelization</h3>
-    <p>While rendering could now be done in parallel, it's hard to escape that the update algorithm itself is already embarrasingly parallel. We decided to be able to increase our particle counts, we would attempt to use CUDA to move the calculation of the algorithm itself on the GPU as well. Integrating CUDA with our current project's cmake files was a bit of a struggle due to our project structure, but thankfully the nvidia forums are quite active. Upon compilation, we did not realize that we could not use the standard library on GPU, meaning we had to rethink our particle model, at which point was relying on vectors to keep track of particle neighbors, stored as particle pointers. We made the decision then to cap the number of neighbors a particle could have to 50 and create an array of ints to store neighbors instead. This array only stores the index of the neighbor in a shared array of all particles. An additional variable to keep track of the number of neighbors the particle actually has was also added to allow for safe iteration over the neighbors list. The new particle struct was then created:</p>
+    <p>While rendering could now be done in parallel, it's hard to escape that the update algorithm itself is already embarrassingly parallel. We decided to be able to increase our particle counts, we would attempt to use CUDA to move the calculation of the algorithm itself on the GPU as well. Integrating CUDA with our current project's CMake files was a bit of a struggle due to our project structure, but thankfully the Nvidia forums are quite active. Upon compilation, we did not realize that we could not use the standard library on GPU, meaning we had to rethink our particle model, at which point was relying on vectors to keep track of particle neighbors, stored as particle pointers. We made the decision then to cap the number of neighbors a particle could have to 50 and create an array of ints to store neighbors instead. This array only stores the index of the neighbor in a shared array of all particles. An additional variable to keep track of the number of neighbors the particle actually has was also added to allow for safe iteration over the neighbors list. The new particle struct was then created:</p>
     
 
 <div style='columns: 2'>
     <pre>
     <k>struct</k> Particle {
         <t>vec3</t> position;
-        <t>vec3</t> pred_position;
+        <t>vec3</t> predicted_position;
         <t>vec3</t> delta_position;
         <t>vec3</t> velocity;
         <t>vec3</t> omega;
@@ -215,13 +215,13 @@
         <t>int</t> num_neighbors;
     }</pre>
     
-        <p>The other major changes to note are the removal of the force members, since we decided to modify velocity on demand rather than storing a forces in the particle.  The addition of the lambda, rho, and omega terms were to avoid recalulating them every time they were needed. We included these terms in the particles which are all passed into the GPU during the parallelized update along with the neighborhood and num_neighbors members.  Collectively, these allow us to limit the number of neighbors a particle can have and and to access them and all their relevant attributes only using array indices.<p>
+        <p>The other major changes to note are the removal of the force members, since we decided to modify velocity on demand rather than storing a forces in the particle.  The addition of the lambda, rho, and omega terms were to avoid recalculating them every time they were needed. We included these terms in the particles which are all passed into the GPU during the parallelized update along with the neighborhood and num_neighbors members.  Collectively, these allow us to limit the number of neighbors a particle can have and and to access them and all their relevant attributes only using array indices.<p>
         <br/>
     </div>  
     
-    <p>Because our spacial map relies on the standard library's hash map data structure, and we did not have the time to build a GPU compatible spacial map nor could we find one already built, we unfortunately had to keep the spacial map creation on the host, despite it's potential for parallelization. Particles are first copied back to build the spacial map between the force accumulation step and solving for incompressibility constraints. This parallization however still allowed us to increase the particle counts in our scenes from only around 10k on CPU to 200k on GPU. We find that at 150k particles, we still get approximately 1-2 frames per second depending on the chosen kernel size and number of solver iterations.</p>
+    <p>Because our spacial map relies on the standard library's hash map data structure, and we did not have the time to build a GPU compatible spacial map nor could we find one already built, we unfortunately had to keep the spacial map creation on the host, despite it's potential for parallelization. Particles are first copied back to build the spacial map between the force accumulation step and solving for incompressibility constraints. This parallelization however still allowed us to increase the particle counts in our scenes from only around 10k on CPU to 200k on GPU. We find that at 150k particles, we still get approximately 1-2 frames per second depending on the chosen kernel size and number of solver iterations.</p>
     
-    <p>Porting to CUDA also lead to an interesting bug that was difficult to diagnose. We had originally implemented planes as a class, but proting to cuda would have meant we would have needed to modify our files and functions and compile them to .cu files, which would be annoying given the way we had structured the program. We instead just replaced our implementations with structs and then add a collision function with the rest of our CUDA kernels. The would lead the simulations to blow up and again particles would be gaining large velocities. Thankfully, after looking around the scenes for a while, it was noticed that particles hitting the forward wall were the ones to first become overexcited and found that that plane's normal vector was unnormalized, which originally happened in the constructor of the plane.</p>
+    <p>Porting to CUDA also lead to an interesting bug that was difficult to diagnose. We had originally implemented planes as a class, but porting to CUDA would have meant we would have needed to modify our files and functions and compile them to .cu files, which would be annoying given the way we had structured the program. We instead just replaced our implementations with structs and then add a collision function with the rest of our CUDA kernels. The would lead the simulations to blow up and again particles would be gaining large velocities. Thankfully, after looking around the scenes for a while, it was noticed that particles hitting the forward wall were the ones to first become overexcited and found that that plane's normal vector was unnormalized, which originally happened in the constructor of the plane.</p>
     
 <h2>Extra Goodies</h2>
     <p>In writing the new rendering engine after moving away from the starter code, we were able to learn about many cool features that we felt would make our renders less boring. Most of the following come from tutorials on the amazing <a href='https://www.learnopengl.com'>learnopengl.com</a></p>
@@ -233,25 +233,25 @@
     <p>The single color clear got a bit boring after a while, so we went ahead and added a skybox. This made the scenes feel much larger than they were and went well with our fragment shader colors. Paired with moving the camera during, the skybox gives the illusion of complexity to our renders. This was done by creating a simple VAO for a cube and rendering it with perspective set to infinity.</p>
     
     <h3>Mesh Collisions</h3>
-    <p>We wanted to replicate the photo given the Muller, Macklin paper of the bunny taking a shower. We found a low polygon count bunny (as we didn't have an acceleartion structure in place for traingle collisions) and wrote some mesh loading code with the help of a obj parser from Assimp. Upon receivng the list of vertices and indices, we parsed these ourselves to create a new vector of triangles to the scene, which the particles would also collide with when checking for collisions. Because this wasn't a main priority, we stuck with just using the barycentric coordinates of the point of intersection as the point from which we would place the particle after collisions instead of the algorithm used for planes, causing particles to stick on the triangles after colliding.</p>
+    <p>We wanted to replicate the photo given the Muller, Macklin paper of the bunny taking a shower. We found a low polygon count bunny (as we didn't have an acceleration structure in place for triangle collisions) and wrote some mesh loading code with the help of a obj parser from Assimp. Upon receiving the list of vertices and indices, we parsed these ourselves to create a new vector of triangles to the scene, which the particles would also collide with when checking for collisions. Because this wasn't a main priority, we stuck with just using the barycentric coordinates of the point of intersection as the point from which we would place the particle after collisions instead of the algorithm used for planes, causing particles to stick on the triangles after colliding.</p>
     
     <h3>Water Shader</h3>
-    <p>Originally, we had planned to make it our goal to implement the ellipsoid splattering technique used in the Macklin paper, but we looked at the math and didn't really understand any of it so we thohught our time would be better spent porting to CUDA. When going throught the openGL tutorials, the skybox tutorial also had a refractive shader tutorial, so we went ahead and added it in as a poor man's substitute. The results were surprisingly satisfactory at large particle counts.</p>
+    <p>Originally, we had planned to make it our goal to implement the ellipsoid splattering technique used in the Macklin paper, but we looked at the math and didn't really understand any of it so we thought our time would be better spent porting to CUDA. When going through the openGL tutorials, the skybox tutorial also had a refractive shader tutorial, so we went ahead and added it in as a poor man's substitute. The results were surprisingly satisfactory at large particle counts.</p>
     
     <h3>Lighting</h3>
-    <p>We had to write our own lighting code to work with our shaders without the use of GLUT. Doing so really helped to enforce and clear up some of the confusion from the shaders in project 2. THis gave us direct control over lighting position, feel, material, and strength. We wrote another shader to implement the Blinn-phong shader model and added specular highlights to our water shader. Lights are rendered as small cubes. Unfortunately, I didn't find the bloom tutorial until after they were implemented and we had presented.</p>
+    <p>We had to write our own lighting code to work with our shaders without the use of GLUT. Doing so really helped to enforce and clear up some of the confusion from the shaders in project 2. This gave us direct control over lighting position, feel, material, and strength. We wrote another shader to implement the Blinn-Phong shader model and added specular highlights to our water shader. Lights are rendered as small cubes. Unfortunately, we couldn't find resources on implementing bloom before the final presentation deadline.</p>
     
     
 <h2>Lesson Learned</h2>
-    <p>In rewriting the renderer code from scratch and learning how the renders from prior projects worked, we learned a great deal about writing visual applications. At the largest level, we learned how the openGL pipeline works, from initialization, to binding of the projection, model, and view matrices, to creating VAO's, EBO's, and VBO's, to writing GLSL shaders. The learnopengl tutorials also gave many small tips that were fun and interesting to think about how to utilize openGL to achieve specific effects. Finally just getting used to openGL's stack based call system was crucial to speeding up future developement.</p>
+    <p>In rewriting the renderer code from scratch and learning how the renders from prior projects worked, we learned a great deal about writing visual applications. At the largest level, we learned how the openGL pipeline works, from initialization, to binding of the projection, model, and view matrices, to creating VAO's, EBO's, and VBO's, to writing GLSL shaders. The learnopengl tutorials also gave many small tips that were fun and interesting to think about how to utilize openGL to achieve specific effects. Finally just getting used to openGL's stack based call system was crucial to speeding up future development.</p>
     
-    <p>Using CUDA to parallelize, we learned a useful skill in how to write programs for the GPU, building with cmake, and integrating with existing projects. This made us more conscious about the memory we were using and looked for ways to balance repeating function calls with storing too much memory to copy to and from the GPU.</p>
+    <p>Using CUDA to parallelize, we learned a useful skill in how to write programs for the GPU, building with CMake, and integrating with existing projects. This made us more conscious about the memory we were using and looked for ways to balance repeating function calls with storing too much memory to copy to and from the GPU.</p>
     
-    <p>On the side, this has also taught us about building and maintaining large projects. CMake made working both at home and in the lab relatively painless as it handled OS rules. CMake also made adding dependencies and linking the many libraries we used relatively easy as well, able to split the project into subdirectories under the example of the cmake files from our previous projects.</p>
+    <p>On the side, this has also taught us about building and maintaining large projects. CMake made working both at home and in the lab relatively painless as it handled OS rules. CMake also made adding dependencies and linking the many libraries we used relatively easy as well, able to split the project into subdirectories under the example of the CMake files from our previous projects.</p>
     
-    <p>We also learned for our future endeavors to build in I/O argument support for loading project parameters. We neglected that as neither of us has much experience with IO in cpp, but meant every time we wished to tweak the scene for a new render, we needed to recompile the project, though with cmake, the wait time was not too bad.</p>
+    <p>We also learned for our future endeavors to build in I/O argument support for loading project parameters. We neglected that as neither of us has much experience with IO in cpp, but meant every time we wished to tweak the scene for a new render, we needed to recompile the project, though with CMake, the wait time was not too bad.</p>
     
-    <p>This project also gave a different look at graphics progams than the other projects from class, which largely focussed on the math. Here we were encouraged to experiment and just play around, adding meaningless but fun things like skyboxes or colorful shaders. It ended up giving me at least many ideas for new projects that I'm excited to try out.</p>
+    <p>This project also gave a different look at graphics programs than the other projects from class, which largely focussed on the math. Here we were encouraged to experiment and just play around, adding meaningless but fun things like skyboxes or colorful shaders. It ended bringing up many ideas for new projects that would be exciting to try out!</p>
     
     
 <h2>Results and Render Gallery</h2>
@@ -308,7 +308,7 @@
             <h4 style='margin: 0.5em 0;'>Parallelization</h4>
                 <li><a href='https://developer.nvidia.com/cuda-downloads'>CUDA</a></li>
             <h4 stype='margin: 0.5em 0;'>Architecture</h4>
-                <li>CS184 Projects 2 and 3 for view Implementation and cmake starters</li>
+                <li>CS184 Projects 2 and 3 for view Implementation and CMake starters</li>
         </div>
     </div>
     
